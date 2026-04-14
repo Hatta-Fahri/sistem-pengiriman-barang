@@ -10,12 +10,16 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('proof_of_deliveries', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('proof_of_deliveries', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('shipment_id')->unique()->constrained('shipments')->cascadeOnDelete();
+        $table->string('photo_path');
+        $table->string('received_by_name');
+        $table->timestamp('delivered_at');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

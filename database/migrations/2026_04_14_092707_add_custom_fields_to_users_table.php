@@ -10,11 +10,13 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
-    }
+{
+    Schema::table('users', function (Blueprint $table) {
+        $table->enum('role', ['admin', 'kurir'])->default('admin')->after('password');
+        $table->foreignId('vehicle_id')->nullable()->constrained('vehicles')->nullOnDelete()->after('role');
+        $table->softDeletes();
+    });
+}
 
     /**
      * Reverse the migrations.
