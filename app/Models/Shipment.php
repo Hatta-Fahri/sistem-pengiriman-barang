@@ -13,27 +13,37 @@ class Shipment extends Model
 
     protected $guarded = ['id'];
 
-    // Opsional (Tapi sangat disarankan):
-    // Memastikan current_status selalu di-casting menjadi Enum
     protected $casts = [
         'current_status' => ShipmentStatus::class,
     ];
 
-    // Relasi: Siapa kurir yang membawa paket ini?
-    public function courier()
+    // =========================================================
+    // RELASI
+    // =========================================================
+
+    public function manifest()
     {
-        return $this->belongsTo(User::class, 'courier_id');
+        return $this->belongsTo(Manifest::class);
     }
 
-    // Relasi: Apa saja riwayat perjalanan (status) paket ini?
     public function trackings()
     {
         return $this->hasMany(ShipmentTracking::class);
     }
 
-    // Relasi: Mana bukti foto pengirimannya? (1 Paket = 1 Bukti)
     public function proofOfDelivery()
     {
         return $this->hasOne(ProofOfDelivery::class);
+    }
+
+    // =========================================================
+    // SCOPE PENCARIAN
+    // =========================================================
+
+    public function scopePending($query)
+    {
+        // Menggunakan Enum DIPROSES untuk pencarian data yang siap dijadwalkan
+        return $query->where('current_status', ShipmentStatus::DIPROSES)
+                     ->whereNull('manifest_id');
     }
 }
