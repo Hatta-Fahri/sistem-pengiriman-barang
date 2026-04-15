@@ -16,7 +16,7 @@ return new class extends Migration
         $table->foreignId('shipment_id')->constrained('shipments')->cascadeOnDelete();
         $table->string('status');
         $table->text('notes')->nullable();
-        $table->foreignId('recorded_by')->constrained('users'); // Siapa yang update status ini
+        $table->foreignId('recorded_by')->constrained('users'); 
         $table->timestamps();
     });
 }
