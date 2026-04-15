@@ -22,7 +22,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Mencegah admin memasukkan rute kembar (misal: Medan ke Siantar ada 2 harga)
+            // Mencegah admin memasukkan rute kembar 
             $table->unique(['origin_city', 'destination_city']);
         });
     }

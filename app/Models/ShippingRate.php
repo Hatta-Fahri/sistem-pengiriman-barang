@@ -11,13 +11,18 @@ class ShippingRate extends Model
 
     protected $guarded = ['id'];
 
-    /**
-     * Scope untuk mempermudah pencarian tarif berdasarkan rute Asal -> Tujuan
-     * Contoh penggunaan di Controller: ShippingRate::route('Medan', 'Siantar')->first();
-     */
     public function scopeRoute($query, $origin, $destination)
     {
         return $query->where('origin_city', $origin)
                      ->where('destination_city', $destination);
+    }
+
+    /**
+     * Scope untuk memfilter rute berdasarkan Jalur Pengiriman (Konsolidasi Muatan)
+     * Contoh penggunaan nanti saat Penjadwalan: ShippingRate::jalur('Lintas Timur')->get();
+     */
+    public function scopeJalur($query, $jalur)
+    {
+        return $query->where('jalur_pengiriman', $jalur);
     }
 }
