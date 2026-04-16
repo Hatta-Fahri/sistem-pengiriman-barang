@@ -4,10 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ShippingRateController;
-use App\Http\Controllers\Admin\ShipmentController; // Import Controller Resi
-use App\Http\Controllers\Admin\ManifestController; // Import Controller Jadwal
+use App\Http\Controllers\Admin\ShipmentController;
+use App\Http\Controllers\Admin\ManifestController;
+use App\Http\Controllers\Admin\VehicleController;
+use App\Http\Controllers\Admin\CourierController;
 use App\Http\Controllers\Courier\DashboardController as CourierDashboardController;
-
 
 // Redirect root ke login
 Route::get('/', [AuthController::class, 'index']);
@@ -32,20 +33,24 @@ Route::middleware('auth')->group(function () {
     // MODULE: ADMIN SYSTEM
     // ==========================================================
     Route::prefix('admin')->group(function () {
+
         // Dashboard Admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
-        // Rute & Tarif
-        Route::get('/shipping-rates', [ShippingRateController::class, 'index']);
-        Route::post('/shipping-rates', [ShippingRateController::class, 'store']);
-        Route::put('/shipping-rates/{id}', [ShippingRateController::class, 'update']);
-        Route::delete('/shipping-rates/{id}', [ShippingRateController::class, 'destroy']);
+        // Master Data: Rute & Tarif
+        Route::resource('shipping-rates', ShippingRateController::class)->except(['create', 'edit', 'show']);
 
-        // Pengiriman (Resi) - Menggunakan Resource agar men-cover Create, Store, Index, dll
+        // Master Data: Armada Kendaraan
+        Route::resource('vehicles', VehicleController::class)->except(['create', 'edit']);
+
+        // Master Data: Manajemen Kurir
+        Route::resource('couriers', CourierController::class)->except(['create', 'edit', 'show']);
+
+        // Operasional: Pengiriman (Resi)
         Route::resource('shipments', ShipmentController::class);
 
-        // Operasional Penjadwalan (Manifest)
-        Route::resource('manifests', ManifestController::class);
+        Route::post('manifests/{manifest}/generate', [ManifestController::class, 'generate'])->name('manifests.generate');
+        Route::resource('manifests', ManifestController::class)->except(['create', 'edit']);
     });
 
     // ==========================================================
@@ -55,5 +60,6 @@ Route::middleware('auth')->group(function () {
 
         // Dashboard Kurir
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('courier.dashboard');
+
     });
 });
