@@ -57,7 +57,8 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-gray-900">{{ $resi->receiver_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $resi->weight }} Kg</div>
+                                    <div class="text-xs text-gray-500">{{ $resi->weight }} Kg | {{ $resi->jumlah_koli }}
+                                        Koli</div>
                                 </td>
                                 <td class="px-6 py-4">
                                     @if ($resi->current_status === App\Enums\ShipmentStatus::DIPROSES || $resi->current_status?->value === 'Diproses')
@@ -73,10 +74,10 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <a href="#"
+                                    <a href="{{ route('shipments.show', $resi->id) }}"
                                         class="p-2 inline-block text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Lihat Detail">
-                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                        title="Cetak Resi">
+                                        <i data-lucide="printer" class="w-4 h-4"></i>
                                     </a>
                                 </td>
                             </tr>
