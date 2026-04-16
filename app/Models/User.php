@@ -22,7 +22,15 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'vehicle_id'
+
+        // --- Data Spesifik Kurir ---
+        'courier_code', // ID Kurir Otomatis (KRR001)
+        'nik',
+        'phone',
+        'sim_number',
+        'sim_type',
+        'address',
+        'status',
     ];
 
     /**
@@ -45,15 +53,23 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // Relasi: Kurir ini menggunakan kendaraan apa?
-    public function vehicle()
-    {
-        return $this->belongsTo(Vehicle::class);
-    }
+    // ====================================================================
+    // RELASI DATABASE
+    // ====================================================================
 
-    // Relasi: Paket apa saja yang sedang/pernah dibawa kurir ini?
+    /**
+     * Relasi: Paket apa saja yang sedang/pernah dibawa kurir ini?
+     */
     public function shipments()
     {
         return $this->hasMany(Shipment::class, 'courier_id');
+    }
+
+    /**
+     * Relasi: Manifest (Jadwal) apa saja yang pernah/sedang dijalankan kurir ini?
+     */
+    public function manifests()
+    {
+        return $this->hasMany(Manifest::class, 'courier_id');
     }
 }

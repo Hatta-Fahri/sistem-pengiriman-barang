@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('receiver_phone');
             $table->text('receiver_address');
 
-            // Data Rute & Jalur (BARU: Untuk kebutuhan filtering Penjadwalan)
+            // Data Rute & Jalur
             $table->string('origin_city');
             $table->string('destination_city');
             $table->string('jalur_pengiriman');
@@ -30,7 +30,7 @@ return new class extends Migration
             // Detail Barang & Biaya
             $table->text('item_description');
             $table->decimal('weight', 8, 2);
-            $table->decimal('distance', 8, 2)->nullable(); // Jarak bisa opsional
+            $table->decimal('distance', 8, 2)->nullable(); 
             $table->decimal('shipping_cost', 12, 2);
 
             // Relasi Penjadwalan (Pengganti courier_id)
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->unsignedBigInteger('manifest_id')->nullable();
 
             // Menggunakan Enum/String untuk status
-            $table->string('current_status')->default('Diproses'); // Pending = Menunggu Penjadwalan
+            $table->string('current_status')->default('Diproses');
 
             $table->timestamps();
             $table->softDeletes();
