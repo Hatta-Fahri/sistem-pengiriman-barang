@@ -10,10 +10,10 @@
             <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Data Manifest</h2>
             <p class="text-gray-500 text-sm mt-1">Kelola jadwal rute, alokasi armada, dan persiapan muatan resi.</p>
         </div>
-        <button onclick="openModal('addManifestModal')" class="flex items-center gap-2 bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-blue-800 transition-colors">
+        <a href="{{ route('manifests.create') }}" class="flex items-center gap-2 bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-blue-800 transition-colors">
             <i data-lucide="calendar-plus" class="w-5 h-5"></i>
             <span>Buat Jadwal Baru</span>
-        </button>
+        </a>
     </div>
 
     @if(session('success'))
@@ -68,31 +68,40 @@
                         </td>
 
                         <td class="px-6 py-4">
-                            @if($manifest->status == 'Draft')
-                                <span class="text-xs text-gray-400 italic">Menunggu muat barang...</span>
-                            @else
-                                <div class="flex justify-between items-end mb-1">
-                                    <span class="text-xs font-bold text-gray-700">
-                                        {{ number_format($manifest->total_weight, 0) }} <span class="text-gray-400 font-normal">/ {{ number_format($manifest->vehicle->capacity ?? 0, 0) }} Kg</span>
-                                    </span>
-                                    <span class="text-[10px] font-black {{ $manifest->load_percentage >= 90 ? 'text-red-600' : 'text-blue-600' }}">
-                                        {{ number_format($manifest->load_percentage, 1) }}%
-                                    </span>
-                                </div>
-                                <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="{{ $manifest->load_percentage > 85 ? 'bg-orange-500' : 'bg-blue-500' }} h-1.5 rounded-full" style="width: {{ $manifest->load_percentage }}%"></div>
-                                </div>
-                                <div class="text-[10px] text-gray-400 mt-1 text-right">{{ $manifest->total_shipments }} Resi Dimuat</div>
-                            @endif
+                            @php
+                                $capacity = $manifest->vehicle->capacity ?? 0;
+                                $totalWeight = $manifest->total_weight ?? 0;
+                                $percentage = $capacity > 0 ? ($totalWeight / $capacity) * 100 : 0;
+
+                                // Animasi mentok di 100% agar UI tidak jebol
+                                $clampedPercentage = $percentage > 100 ? 100 : $percentage;
+
+                                // Penentuan warna (Sama seperti JS: >100 Merah, >=85 Oranye, <85 Biru)
+                                $barColor = $percentage > 100 ? 'bg-red-600' : ($percentage >= 85 ? 'bg-orange-500' : 'bg-blue-600');
+                                $textColor = $percentage > 100 ? 'text-red-600' : ($percentage >= 85 ? 'text-orange-600' : 'text-blue-700');
+                            @endphp
+
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="text-xs font-bold text-gray-700">
+                                    {{ number_format($totalWeight, 1) }} <span class="text-gray-400 font-normal">/ {{ number_format($capacity, 0) }} Kg</span>
+                                </span>
+                                <span class="text-[10px] font-black {{ $textColor }}">
+                                    {{ number_format($percentage, 1) }}%
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                <div class="{{ $barColor }} h-1.5 rounded-full" style="width: {{ $clampedPercentage }}%"></div>
+                            </div>
+                            <div class="text-[10px] text-gray-400 mt-1 text-right">{{ $manifest->total_shipments ?? 0 }} Resi Dimuat</div>
                         </td>
 
                         <td class="px-6 py-4">
                             @php
                                 $statusColor = match($manifest->status) {
-                                    'Draft' => 'bg-gray-100 text-gray-700',
+                                    'Persiapan' => 'bg-gray-100 text-gray-700 border border-gray-200',
                                     'Sedang Jalan' => 'bg-blue-100 text-blue-700 border border-blue-200',
                                     'Selesai' => 'bg-green-100 text-green-700 border border-green-200',
-                                    default => 'bg-gray-100 text-gray-700'
+                                    default => 'bg-gray-100 text-gray-700 border border-gray-200'
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase {{ $statusColor }}">
@@ -102,20 +111,37 @@
 
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end items-center gap-2">
-                                @if($manifest->status == 'Draft')
-                                    <a href="{{ route('manifests.show', $manifest->id) }}" class="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors flex items-center gap-1">
-                                        <i data-lucide="package-plus" class="w-3.5 h-3.5"></i> Muat Barang
-                                    </a>
-                                @else
-                                    <button class="px-3 py-1.5 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 rounded-lg" disabled>Terkunci</button>
+
+                                @if($manifest->status === 'Persiapan')
+                                    <form action="{{ route('manifests.berangkatkan', $manifest->id) }}" method="POST" onsubmit="return confirm('Truk sudah siap dan bak ditutup? Berangkatkan sekarang?');">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1 shadow-sm">
+                                            <i data-lucide="send" class="w-3.5 h-3.5"></i> Jalan
+                                        </button>
+                                    </form>
                                 @endif
 
-                                <form action="{{ route('manifests.destroy', $manifest->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jadwal ini?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
-                                </form>
+                                @if($manifest->status === 'Persiapan')
+                                    <a href="{{ route('manifests.edit', $manifest->id) }}"
+                                       class="px-3 py-1.5 bg-white border border-gray-200 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="edit" class="w-3.5 h-3.5"></i> Edit
+                                    </a>
+                                @else
+                                    <a href="{{ route('manifests.show', $manifest->id) }}"
+                                       class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Detail
+                                    </a>
+                                @endif
+
+                                @if($manifest->status === 'Persiapan')
+                                    <form action="{{ route('manifests.destroy', $manifest->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jadwal ini?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                @endif
+
                             </div>
                         </td>
                     </tr>
@@ -134,43 +160,4 @@
         @endif
     </div>
 </div>
-
-<div id="addManifestModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900/50 backdrop-blur-sm">
-    <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"></span>
-        <div class="relative inline-block text-left align-bottom transition-all transform bg-white rounded-2xl shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 class="text-lg font-bold text-gray-900">Buat Jadwal Rute Baru</h3>
-                <button type="button" onclick="closeModal('addManifestModal')" class="text-gray-400 hover:text-gray-500 hover:bg-gray-100 p-1 rounded-md">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <form action="{{ route('manifests.store') }}" method="POST">
-                @csrf
-                <div class="px-6 py-5 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Rute / Jalur Pengiriman <span class="text-red-500">*</span></label>
-                        <input type="text" name="jalur_pengiriman" required class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500" placeholder="Contoh: Medan - Pematang Siantar">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" rows="2" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500" placeholder="Instruksi khusus..."></textarea>
-                    </div>
-                    <p class="text-xs text-orange-600 bg-orange-50 p-2 rounded-lg border border-orange-100 font-medium">
-                        * Armada (Mobil & Kurir) serta muatan resi akan dialokasikan di tahap selanjutnya.
-                    </p>
-                </div>
-                <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100 rounded-b-2xl">
-                    <button type="button" onclick="closeModal('addManifestModal')" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50">Batal</button>
-                    <button type="submit" class="px-6 py-2 text-sm font-bold text-white bg-blue-700 rounded-xl hover:bg-blue-800 shadow-sm">Simpan Draft</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
-    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
-</script>
 @endsection
