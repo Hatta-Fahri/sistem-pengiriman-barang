@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -45,7 +44,7 @@
                 <p class="text-sm text-gray-500 mt-1">Silakan masukkan email dan password Anda</p>
             </div>
 
-            @if ($errors->any())
+            @if ($errors->has('login_error') || $errors->any())
                 <div class="mb-5 p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-start gap-3 border border-red-100">
                     <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
                     <span class="font-medium">{{ $errors->first() }}</span>
@@ -59,30 +58,46 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Email</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                            <i data-lucide="mail" class="h-5 w-5 {{ $errors->has('email') ? 'text-red-400' : 'text-gray-400' }}"></i>
                         </div>
                         <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus
-                            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm transition-colors outline-none"
+                            class="block w-full pl-10 pr-3 py-2.5 border rounded-lg sm:text-sm transition-colors outline-none
+                                {{ $errors->has('email')
+                                    ? 'border-red-500 text-red-900 placeholder-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                                    : 'border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600' }}"
                             placeholder="admin@kenlogistics.com">
                     </div>
+                    @error('email')
+                        <p class="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1">
+                            <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> {{ $message }}
+                        </p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                            <i data-lucide="lock" class="h-5 w-5 {{ $errors->has('password') ? 'text-red-400' : 'text-gray-400' }}"></i>
                         </div>
                         <input type="password" name="password" id="password" required
-                            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm transition-colors outline-none"
+                            class="block w-full pl-10 pr-3 py-2.5 border rounded-lg sm:text-sm transition-colors outline-none
+                                {{ $errors->has('password')
+                                    ? 'border-red-500 text-red-900 placeholder-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                                    : 'border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600' }}"
                             placeholder="••••••••">
                     </div>
+                    @error('password')
+                        <p class="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1">
+                            <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> {{ $message }}
+                        </p>
+                    @enderror
                 </div>
 
                 <div class="flex items-center justify-between mt-2">
                     <div class="flex items-center">
-                        <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="remember" class="ml-2 block text-sm text-gray-700">Ingat Saya</label>
+                        <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700 cursor-pointer">Ingat Saya</label>
                     </div>
                 </div>
 
