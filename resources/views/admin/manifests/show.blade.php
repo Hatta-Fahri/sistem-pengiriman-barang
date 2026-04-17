@@ -1,146 +1,145 @@
 @extends('layouts.app')
 
-@section('header-title', 'Dispatch Room (Persiapan Muatan)')
+@section('header-title', 'Detail Jadwal & Muatan')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-6">
 
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-2 text-sm text-gray-500">
-            <a href="{{ route('manifests.index') }}" class="hover:text-blue-600 transition-colors font-medium">Manifest</a>
+            <a href="{{ route('manifests.index') }}" class="hover:text-blue-600 font-medium transition-colors">Manifest</a>
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            <span class="font-bold text-gray-900">Persiapan: {{ $manifest->manifest_code }}</span>
+            <span class="font-bold text-gray-900">Detail: {{ $manifest->manifest_code }}</span>
         </div>
-        <div class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl font-bold border border-blue-100 flex items-center gap-2 shadow-sm">
-            <i data-lucide="map-pin" class="w-5 h-5"></i>
-            Tujuan: {{ $manifest->jalur_pengiriman }}
+
+        <div class="flex items-center gap-3">
+            @php
+                $statusColor = match($manifest->status) {
+                    'Persiapan' => 'bg-gray-100 text-gray-700 border-gray-200',
+                    'Sedang Jalan' => 'bg-blue-100 text-blue-700 border-blue-200',
+                    'Selesai' => 'bg-green-100 text-green-700 border-green-200',
+                    default => 'bg-gray-100 text-gray-700 border-gray-200'
+                };
+            @endphp
+            <span class="px-3 py-1.5 rounded-lg text-xs font-black uppercase border shadow-sm {{ $statusColor }} flex items-center gap-1.5">
+                <i data-lucide="info" class="w-4 h-4"></i> Status: {{ $manifest->status }}
+            </span>
         </div>
     </div>
 
-    @if($errors->any())
-        <div class="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl shadow-sm flex items-start gap-3">
-            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-500"></i>
-            <ul class="list-disc list-inside text-sm font-medium">
-                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+
+        <div class="md:pr-6 space-y-3">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Rute / Jalur</p>
+                <p class="font-bold text-gray-900 flex items-start gap-2">
+                    <i data-lucide="map" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+                    {{ $manifest->jalur_pengiriman }}
+                </p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Waktu Keberangkatan</p>
+                <p class="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
+                    {{ $manifest->departed_at ? \Carbon\Carbon::parse($manifest->departed_at)->format('d M Y, H:i') : 'Belum Berangkat' }}
+                </p>
+            </div>
         </div>
+
+        <div class="md:px-6 pt-4 md:pt-0 space-y-3">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Armada / Truk</p>
+                <p class="font-bold text-gray-900 flex items-center gap-2">
+                    <i data-lucide="truck" class="w-4 h-4 text-blue-600"></i>
+                    {{ $manifest->vehicle->license_plate ?? 'Tidak ada data' }}
+                    <span class="text-xs font-normal text-gray-500">(Max: {{ number_format($manifest->vehicle->capacity ?? 0, 0) }} Kg)</span>
+                </p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nama Supir / Kurir</p>
+                <p class="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                    {{ $manifest->courier->name ?? 'Tidak ada data' }}
+                </p>
+            </div>
+        </div>
+
+        <div class="md:pl-6 pt-4 md:pt-0 flex flex-col justify-center">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Muatan Terbawa</p>
+            <div class="flex items-end gap-2">
+                <h3 class="text-3xl font-black text-gray-900">{{ number_format($manifest->total_weight, 1) }}</h3>
+                <span class="text-gray-500 font-medium mb-1">Kg</span>
+            </div>
+            <p class="text-sm font-semibold text-blue-600 mt-1 flex items-center gap-1.5">
+                <i data-lucide="package" class="w-4 h-4"></i> {{ $manifest->total_shipments }} Resi / Paket
+            </p>
+        </div>
+
+    </div>
+
+    @if($manifest->notes)
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+        <i data-lucide="clipboard-list" class="w-5 h-5 text-yellow-600 shrink-0"></i>
+        <div>
+            <p class="text-xs font-bold text-yellow-800 uppercase tracking-wider mb-0.5">Catatan Perjalanan</p>
+            <p class="text-sm text-yellow-700">{{ $manifest->notes }}</p>
+        </div>
+    </div>
     @endif
 
-    <form action="{{ route('manifests.generate', $manifest->id) }}" method="POST">
-        @csrf
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span class="bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span>
-                            Pilih Resi / Barang (Checklist)
-                        </h3>
-                        <p class="text-sm text-gray-500 mt-1 ml-8">Centang paket yang akan dimuat ke dalam mobil.</p>
-                    </div>
-
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-white sticky top-0 shadow-sm text-xs text-gray-400 uppercase font-bold z-10">
-                                <tr>
-                                    <th class="px-6 py-4 w-10 border-b border-gray-100">
-                                        <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
-                                    </th>
-                                    <th class="px-6 py-4 border-b border-gray-100">No. Resi</th>
-                                    <th class="px-6 py-4 border-b border-gray-100">Penerima & Tujuan</th>
-                                    <th class="px-6 py-4 border-b border-gray-100 text-right">Berat</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-gray-700">
-                                @forelse($availableShipments as $shipment)
-                                <tr class="hover:bg-blue-50/50 transition-colors cursor-pointer" onclick="document.getElementById('ship_{{ $shipment->id }}').click()">
-                                    <td class="px-6 py-4" onclick="event.stopPropagation()">
-                                        <input type="checkbox" name="shipment_ids[]" value="{{ $shipment->id }}" id="ship_{{ $shipment->id }}"
-                                               class="shipment-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
-                                    </td>
-                                    <td class="px-6 py-4 font-bold text-blue-700">{{ $shipment->tracking_number }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-semibold text-gray-900">{{ $shipment->receiver_name }}</div>
-                                        <div class="text-xs text-gray-500">Tujuan: {{ $shipment->destination_city }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-bold">{{ number_format($shipment->weight, 1) }} Kg</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-16 text-center text-gray-400">
-                                        <i data-lucide="package-open" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
-                                        <p class="font-medium text-gray-500">Tidak ada resi yang berstatus 'Diproses' di gudang.</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span class="bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">2</span>
-                            Alokasi Armada
-                        </h3>
-                    </div>
-                    <div class="p-6 space-y-5">
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Pilih Mobil (Tersedia) <span class="text-red-500">*</span></label>
-                            <select name="vehicle_id" required class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                <option value="">-- Pilih Kendaraan --</option>
-                                @foreach($availableVehicles as $vehicle)
-                                    <option value="{{ $vehicle->id }}">{{ $vehicle->type }} ({{ $vehicle->license_plate }}) @if(isset($vehicle->capacity)) - Max: {{ number_format($vehicle->capacity, 0) }}Kg @endif</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Pilih Kurir (Belum Bertugas) <span class="text-red-500">*</span></label>
-                            <select name="courier_id" required class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                <option value="">-- Pilih Kurir --</option>
-                                @foreach($availableCouriers as $courier)
-                                    <option value="{{ $courier->id }}">{{ $courier->name }} ({{ $courier->courier_code }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="pt-4 border-t border-gray-100">
-                            <button type="submit" class="w-full py-3.5 bg-blue-700 text-white rounded-xl font-black text-sm uppercase tracking-wide hover:bg-blue-800 transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
-                                <i data-lucide="rocket" class="w-5 h-5"></i>
-                                Simpan & Berangkatkan
-                            </button>
-                            <p class="text-[10px] text-gray-400 text-center mt-3 font-medium leading-relaxed">
-                                Resi akan diubah menjadi "Sedang Dikirim" dan Armada menjadi "Dalam Tugas" / "Sedang Jalan".
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-900">Daftar Paket di Dalam Truk</h3>
         </div>
-    </form>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-white text-xs text-gray-400 uppercase font-bold border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 w-12 text-center">No</th>
+                        <th class="px-6 py-4">Nomor Resi</th>
+                        <th class="px-6 py-4">Penerima & Alamat</th>
+                        <th class="px-6 py-4 text-right">Berat</th>
+                        <th class="px-6 py-4 text-center">Status Paket</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-gray-700">
+                    @forelse($manifest->shipments as $index => $shipment)
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4 text-center font-medium text-gray-400">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 font-black text-blue-700 tracking-wide">{{ $shipment->tracking_number }}</td>
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-gray-900">{{ $shipment->receiver_name }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5 truncate max-w-xs" title="{{ $shipment->receiver_address }}, {{ $shipment->destination_city }}">
+                                {{ $shipment->receiver_address }}, {{ $shipment->destination_city }}
+                            </p>
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold">{{ number_format($shipment->weight, 1) }} Kg</td>
+                        <td class="px-6 py-4 text-center">
+                            @php
+                                $statusAsli = $shipment->current_status->value ?? $shipment->current_status;
+                                $badgeColor = match($statusAsli) {
+                                    'Diterima' => 'bg-green-50 text-green-700 border-green-200',
+                                    'Gagal Dikirim', 'Penundaan Pengiriman' => 'bg-red-50 text-red-700 border-red-200',
+                                    'Dalam Pengantaran' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                    default => 'bg-gray-50 text-gray-600 border-gray-200'
+                                };
+                            @endphp
+                            <span class="inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border {{ $badgeColor }}">
+                                {{ $statusAsli }}
+                            </span>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                            <i data-lucide="package-x" class="w-10 h-10 mx-auto mb-3 text-gray-300"></i>
+                            <p>Tidak ada data resi ditemukan di jadwal ini.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const selectAll = document.getElementById('selectAll');
-        const checkboxes = document.querySelectorAll('.shipment-checkbox');
-
-        if(selectAll) {
-            selectAll.addEventListener('change', function() {
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = selectAll.checked;
-                });
-            });
-        }
-    });
-</script>
 @endsection
