@@ -16,7 +16,7 @@
        {{ request()->is('admin/shipments*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
         <div class="flex items-center gap-3">
             <i data-lucide="package" class="w-[18px] h-[18px] {{ request()->is('admin/shipments*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
-            <span class="text-[14px]">Pengiriman (Resi)</span>
+            <span class="text-[14px]">Pengiriman</span>
         </div>
     </a>
 
@@ -53,6 +53,18 @@
     {{ request()->is('admin/vehicles*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
         <i data-lucide="truck" class="w-[18px] h-[18px] {{ request()->is('admin/vehicles*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
         <span class="text-[14px]">Armada Kendaraan</span>
+    </a>
+
+    <div class="pt-6 pb-2 px-3 flex items-center gap-2">
+        <div class="w-1 h-3 bg-purple-500 rounded-full"></div>
+        <span class="text-[12px] font-bold text-gray-400 uppercase tracking-wider">Analitik</span>
+    </div>
+
+    <a href="{{ route('reports.index') }}"
+        class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all
+    {{ request()->is('admin/reports*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
+        <i data-lucide="bar-chart-2" class="w-[18px] h-[18px] {{ request()->is('admin/reports*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
+        <span class="text-[14px]">Pusat Laporan</span>
     </a>
 @endif
 

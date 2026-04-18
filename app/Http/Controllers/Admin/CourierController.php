@@ -33,10 +33,9 @@ class CourierController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $validated['role'] = 'kurir';
 
-        // Logika Auto-Generate ID (KRR001, KRR002, dst)
         $lastCourier = User::where('role', 'kurir')->whereNotNull('courier_code')->orderBy('id', 'desc')->first();
         if ($lastCourier) {
-            // Ambil 3 angka terakhir, ubah ke integer, tambah 1
+
             $lastNumber = (int) substr($lastCourier->courier_code, 3);
             $newNumber = $lastNumber + 1;
         } else {
