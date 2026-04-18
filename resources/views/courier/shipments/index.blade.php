@@ -28,7 +28,7 @@
         @php
             $totalPaket = $activeManifest->shipments->count();
 
-            // PERBAIKAN BUG ENUM: Kita filter manual isinya
+            // Progress Bar hanya dihitung jika sudah di titik akhir
             $paketSelesai = $activeManifest->shipments->filter(function($shipment) {
                 $status = $shipment->current_status->value ?? $shipment->current_status;
                 return in_array($status, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
@@ -61,11 +61,14 @@
                     $statusAsli = $shipment->current_status->value ?? $shipment->current_status;
                     $isSelesai = in_array($statusAsli, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
 
+                    // Warna badge disesuaikan dengan Enum terbaru
                     $statusColor = match($statusAsli) {
                         'Diterima' => 'bg-green-50 text-green-700 border-green-200',
                         'Gagal Dikirim' => 'bg-red-50 text-red-700 border-red-200',
                         'Penundaan Pengiriman' => 'bg-orange-50 text-orange-700 border-orange-200',
                         'Dalam Pengantaran' => 'bg-blue-50 text-blue-700 border-blue-200',
+                        'Tiba di Tujuan' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                        'Dalam Perjalanan' => 'bg-purple-50 text-purple-700 border-purple-200',
                         default => 'bg-gray-50 text-gray-600 border-gray-200'
                     };
                 @endphp
@@ -121,22 +124,77 @@
                                 </div>
                             </div>
 
-                            <form action="{{ route('courier.shipments.update-status', $shipment->id) }}" method="POST" class="flex flex-col sm:flex-row gap-3 border-t border-blue-100 pt-4">
+                            <form action="{{ route('courier.shipments.update-status', $shipment->id) }}" method="POST" class="flex flex-col gap-4 border-t border-blue-100 pt-4" x-data="{ statusPilihan: '{{ $statusAsli }}' }">
                                 @csrf @method('PUT')
 
-                                <div class="flex-1">
+                                <div>
                                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Update Status Menjadi:</label>
-                                    <select name="current_status" required class="w-full text-sm rounded-xl border-gray-300 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
-                                        <option value="Dalam Pengantaran" {{ $statusAsli == 'Dalam Pengantaran' ? 'selected' : '' }}>🛵 Sedang OTW (Dalam Pengantaran)</option>
-                                        <option value="Diterima" {{ $statusAsli == 'Diterima' ? 'selected' : '' }}>✅ Selesai (Diterima Customer)</option>
-                                        <option value="Gagal Dikirim" {{ $statusAsli == 'Gagal Dikirim' ? 'selected' : '' }}>❌ Rumah Kosong (Gagal Dikirim)</option>
-                                        <option value="Penundaan Pengiriman" {{ $statusAsli == 'Penundaan Pengiriman' ? 'selected' : '' }}>⏸️ Ditunda / Reschedule</option>
+                                    <select name="current_status" x-model="statusPilihan" required class="w-full text-sm rounded-xl border-gray-300 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
+                                        @if($statusAsli === 'Dalam Perjalanan')
+                                            <option value="Dalam Perjalanan">🚚 Masih di Jalan (Belum Diantar)</option>
+                                        @endif
+                                        @if(in_array($statusAsli, ['Dalam Perjalanan', 'Tiba di Tujuan']))
+                                            <option value="Tiba di Tujuan">📍 Telah Tiba di Tujuan</option>
+                                        @endif
+                                        <option value="Dalam Pengantaran">🛵 OTW ke Rumah (Dalam Pengantaran)</option>
+                                        <option value="Diterima">✅ Paket Diterima Customer</option>
+                                        <option value="Gagal Dikirim">❌ Gagal Dikirim</option>
+                                        <option value="Penundaan Pengiriman">⏸️ Ditunda / Reschedule</option>
                                     </select>
                                 </div>
 
-                                <div class="sm:self-end">
-                                    <button type="submit" class="w-full sm:w-auto bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-blue-800 transition-colors flex items-center justify-center gap-2">
-                                        <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                                <div x-show="statusPilihan === 'Diterima'" x-collapse x-data="cameraCapture()" x-init="$watch('statusPilihan', value => { if(value !== 'Diterima') stopCamera() })" class="w-full bg-blue-50/80 p-4 rounded-xl border border-blue-200 space-y-4">
+
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-1.5">
+                                            Nama Penerima Paket <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" name="received_by_name" placeholder="Contoh: Pak Budi / Istri Pak Budi" :required="statusPilihan === 'Diterima'"
+                                            class="w-full text-sm rounded-lg border-blue-200 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2">
+                                            <i data-lucide="camera" class="w-3 h-3 inline"></i> Foto Bukti Paket (Live Camera) <span class="text-red-500">*</span>
+                                        </label>
+
+                                        <input type="hidden" name="photo_base64" x-model="photoData" :required="statusPilihan === 'Diterima'">
+
+                                        <div x-show="!isCameraOpen && !hasCaptured" @click="initCamera()" class="w-full h-40 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm">
+                                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                                <i data-lucide="camera" class="w-6 h-6 text-blue-600"></i>
+                                            </div>
+                                            <span class="text-sm font-bold text-blue-700">Sentuh untuk Buka Kamera</span>
+                                        </div>
+
+                                        <div x-show="isCameraOpen && !hasCaptured" class="relative w-full rounded-xl overflow-hidden bg-black shadow-md border border-gray-200 aspect-video">
+                                            <video x-ref="video" class="w-full h-full object-cover" playsinline autoplay></video>
+
+                                            <button type="button" @click="capture()" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+                                                <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
+                                            </button>
+                                        </div>
+
+                                        <div x-show="hasCaptured" class="relative w-full rounded-xl overflow-hidden border-2 border-green-400 shadow-md">
+                                            <img :src="photoData" class="w-full h-auto object-cover aspect-video">
+
+                                            <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1">
+                                                <i data-lucide="check" class="w-3 h-3"></i> Foto Terekam
+                                            </div>
+
+                                            <button type="button" @click="retake()" class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-red-700 flex items-center gap-1 transition-colors">
+                                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Ulangi
+                                            </button>
+                                        </div>
+
+                                        <canvas x-ref="canvas" class="hidden"></canvas>
+                                    </div>
+
+                                </div>
+
+                                <div class="text-right mt-2">
+                                    <button type="submit" class="w-full sm:w-auto bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2">
+                                        <i data-lucide="save" class="w-5 h-5"></i> SIMPAN PERUBAHAN
                                     </button>
                                 </div>
                             </form>
@@ -150,7 +208,7 @@
         <div class="mt-8 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] text-center relative overflow-hidden">
             <div class="relative z-10">
                 <h3 class="text-lg font-bold text-gray-900 mb-2">Tugas Selesai?</h3>
-                <p class="text-sm text-gray-500 mb-6 max-w-md mx-auto">Pastikan semua paket sudah di-update statusnya menjadi Diterima, Gagal, atau Ditunda sebelum menutup manifest hari ini.</p>
+                <p class="text-sm text-gray-500 mb-6 max-w-md mx-auto">Pastikan semua paket sudah di-update statusnya menjadi Diterima, Gagal Dikirim, atau Penundaan Pengiriman sebelum menutup manifest hari ini.</p>
 
                 <form action="{{ route('courier.manifests.complete', $activeManifest->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menyelesaikan tugas hari ini? Status armada akan kembali tersedia.');">
                     @csrf
@@ -185,4 +243,62 @@
     @endif
 
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('cameraCapture', () => ({
+            stream: null,
+            isCameraOpen: false,
+            hasCaptured: false,
+            photoData: '',
+
+            initCamera() {
+                // Minta izin dan buka kamera (Prioritaskan kamera belakang di HP)
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then(stream => {
+                        this.stream = stream;
+                        this.isCameraOpen = true;
+                        this.$refs.video.srcObject = stream;
+                    })
+                    .catch(err => {
+                        alert("Gagal mengakses kamera. Pastikan browser diizinkan untuk membuka kamera. Error: " + err);
+                    });
+            },
+
+            capture() {
+                // Gambar video frame ke dalam canvas
+                const canvas = this.$refs.canvas;
+                const video = this.$refs.video;
+
+                // Set ukuran canvas sama dengan resolusi video asli
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Jepret!
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Konversi canvas jadi data gambar Base64 (JPG kualitas 80%)
+                this.photoData = canvas.toDataURL('image/jpeg', 0.8);
+                this.hasCaptured = true;
+
+                // Matikan kamera setelah jepret biar hemat baterai
+                this.stopCamera();
+            },
+
+            retake() {
+                this.hasCaptured = false;
+                this.photoData = '';
+                this.initCamera();
+            },
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+                this.isCameraOpen = false;
+            }
+        }))
+    })
+</script>
 @endsection

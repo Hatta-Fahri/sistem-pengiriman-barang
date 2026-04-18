@@ -25,8 +25,25 @@ class ManifestController extends Controller
     {
         // Hanya ambil resi yang belum masuk manifest manapun
         $availableShipments = Shipment::whereNull('manifest_id')->get();
-        $availableVehicles = Vehicle::where('status', 'Tersedia')->get();
-        $availableCouriers = User::where('role', 'kurir')->where('status', 'Aktif')->get();
+
+        // 1. FILTER KENDARAAN: Ambil ID truk yang sedang dipakai (Persiapan / Sedang Jalan)
+        $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+                                      ->whereNotNull('vehicle_id')
+                                      ->pluck('vehicle_id');
+
+        $availableVehicles = Vehicle::where('status', 'Tersedia')
+                                    ->whereNotIn('id', $assignedVehicleIds)
+                                    ->get();
+
+        // 2. FILTER KURIR: Ambil ID Kurir yang sedang bertugas (Persiapan / Sedang Jalan)
+        $assignedCourierIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+                                      ->whereNotNull('courier_id')
+                                      ->pluck('courier_id');
+
+        $availableCouriers = User::where('role', 'kurir')
+                                 ->where('status', 'Aktif')
+                                 ->whereNotIn('id', $assignedCourierIds)
+                                 ->get();
 
         return view('admin.manifests.create', compact('availableShipments', 'availableVehicles', 'availableCouriers'));
     }
@@ -69,17 +86,17 @@ class ManifestController extends Controller
                     'total_weight'     => $totalWeight,
                     'total_shipments'  => $shipments->count(),
                     'notes'            => $request->notes,
-                    'status'           => 'Persiapan', // Atau 'Ready' sesuai kemauanmu
+                    'status'           => 'Persiapan',
                 ]);
 
-                // 2. Masukkan Resi ke Manifest & Ubah Statusnya menjadi 'Diproses' atau 'Ready'
+                // 2. Masukkan Resi ke Manifest & Ubah Statusnya menjadi 'Diproses'
                 Shipment::whereIn('id', $request->shipment_ids)->update([
                     'manifest_id'    => $manifest->id,
-                    'current_status' => 'Diproses' // Sesuaikan jika Enum-mu bernama 'Ready'
+                    'current_status' => 'Diproses'
                 ]);
 
-                // 3. Ubah status Mobil dan Kurir
-                $vehicle->update(['status' => 'Terjadwal']); // Ubah sesuai status MySQL kamu
+                // 3. Ubah status Mobil
+                $vehicle->update(['status' => 'Terjadwal']);
             });
 
             return redirect()->route('manifests.index')->with('success', 'Jadwal & Muatan berhasil disimpan! Siap diberangkatkan.');
@@ -103,13 +120,27 @@ class ManifestController extends Controller
                                       ->orWhere('manifest_id', $manifest->id)
                                       ->get();
 
+        // 1. FILTER KENDARAAN (Kecuali yang ada di manifest ini)
+        $otherAssignedVehicles = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+                                         ->where('id', '!=', $manifest->id)
+                                         ->whereNotNull('vehicle_id')
+                                         ->pluck('vehicle_id');
+
         $availableVehicles = Vehicle::where('status', 'Tersedia')
-                                    ->orWhere('id', $manifest->vehicle_id)
+                                    ->whereNotIn('id', $otherAssignedVehicles)
+                                    ->orWhere('id', $manifest->vehicle_id) // Tetap munculkan truk yang sudah terpilih sebelumnya
                                     ->get();
+
+        // 2. FILTER KURIR (Kecuali yang ada di manifest ini)
+        $otherAssignedCouriers = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+                                         ->where('id', '!=', $manifest->id)
+                                         ->whereNotNull('courier_id')
+                                         ->pluck('courier_id');
 
         $availableCouriers = User::where('role', 'kurir')
                                  ->where('status', 'Aktif')
-                                 ->orWhere('id', $manifest->courier_id)
+                                 ->whereNotIn('id', $otherAssignedCouriers)
+                                 ->orWhere('id', $manifest->courier_id) // Tetap munculkan kurir yang sudah terpilih sebelumnya
                                  ->get();
 
         return view('admin.manifests.edit', compact('manifest', 'availableShipments', 'availableVehicles', 'availableCouriers'));
@@ -187,8 +218,15 @@ class ManifestController extends Controller
     {
         DB::transaction(function () use ($manifest) {
             $manifest->update(['status' => 'Sedang Jalan', 'departed_at' => now()]);
-            Shipment::where('manifest_id', $manifest->id)->update(['current_status' => 'Dalam Pengantaran']);
-            if ($manifest->vehicle) $manifest->vehicle->update(['status' => 'Sedang Digunakan']);
+
+            // PERBAIKAN: Ubah status menjadi 'Dalam Perjalanan'
+            Shipment::where('manifest_id', $manifest->id)->update([
+                'current_status' => 'Dalam Perjalanan'
+            ]);
+
+            if ($manifest->vehicle) {
+                $manifest->vehicle->update(['status' => 'Sedang Digunakan']);
+            }
         });
 
         return back()->with('success', 'Truk diberangkatkan!');
@@ -197,6 +235,12 @@ class ManifestController extends Controller
     public function destroy(Manifest $manifest)
     {
         Shipment::where('manifest_id', $manifest->id)->update(['manifest_id' => null, 'current_status' => 'Diproses']);
+
+        // Kembalikan status mobil jika dihapus
+        if ($manifest->vehicle_id) {
+            Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
+        }
+
         $manifest->delete();
         return back()->with('success', 'Jadwal dihapus, resi dikembalikan ke gudang.');
     }
