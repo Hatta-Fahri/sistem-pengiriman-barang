@@ -3,18 +3,42 @@
 @section('header-title', 'Data Pengiriman')
 
 @section('content')
-    <div class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6" x-data="{ detailModalOpen: null }">
 
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Data Resi Pengiriman</h2>
                 <p class="text-gray-500 text-sm mt-1">Kelola semua paket yang masuk dan pantau statusnya.</p>
             </div>
-            <a href="{{ route('shipments.create') }}"
-                class="flex items-center gap-2 bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                <span>Buat Resi Baru</span>
-            </a>
+
+            <div class="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
+                <form action="{{ route('shipments.index') }}" method="GET" class="w-full sm:w-auto">
+                    <div class="relative">
+                        <select name="status" onchange="this.form.submit()" class="w-full sm:w-56 appearance-none bg-white text-sm font-semibold text-gray-700 py-2.5 pl-10 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
+                            <option value="">Semua Status</option>
+                            <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}>⏳ Menunggu Jadwal</option>
+                            <option value="Dalam Perjalanan" {{ request('status') == 'Dalam Perjalanan' ? 'selected' : '' }}>🚚 Dalam Perjalanan</option>
+                            <option value="Tiba di Tujuan" {{ request('status') == 'Tiba di Tujuan' ? 'selected' : '' }}>📍 Tiba di Tujuan</option>
+                            <option value="Dalam Pengantaran" {{ request('status') == 'Dalam Pengantaran' ? 'selected' : '' }}>🛵 Dalam Pengantaran</option>
+                            <option value="Diterima" {{ request('status') == 'Diterima' ? 'selected' : '' }}>✅ Paket Diterima</option>
+                            <option value="Gagal Dikirim" {{ request('status') == 'Gagal Dikirim' ? 'selected' : '' }}>❌ Gagal Dikirim</option>
+                            <option value="Penundaan Pengiriman" {{ request('status') == 'Penundaan Pengiriman' ? 'selected' : '' }}>⏸️ Ditunda</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i data-lucide="filter" class="w-4 h-4"></i>
+                        </div>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </form>
+
+                <a href="{{ route('shipments.create') }}"
+                    class="flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Buat Resi Baru</span>
+                </a>
+            </div>
         </div>
 
         @if (session('success'))
@@ -24,8 +48,14 @@
             </div>
         @endif
 
-        <div
-            class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
+        @if ($errors->any())
+            <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 shadow-sm">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+                <span class="font-medium">{{ $errors->first() }}</span>
+            </div>
+        @endif
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-gray-500">
                     <thead class="text-xs text-gray-400 uppercase bg-gray-50/50">
@@ -50,35 +80,52 @@
                                         <i data-lucide="arrow-right" class="w-3 h-3 text-gray-300"></i>
                                         <span>{{ $resi->destination_city }}</span>
                                     </div>
-                                    <span
-                                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                         {{ $resi->jalur_pengiriman }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-gray-900">{{ $resi->receiver_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $resi->weight }} Kg | {{ $resi->jumlah_koli }}
-                                        Koli</div>
+                                    <div class="text-xs text-gray-500">{{ $resi->weight }} Kg | {{ $resi->jumlah_koli }} Koli</div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if ($resi->current_status === App\Enums\ShipmentStatus::DIPROSES || $resi->current_status?->value === 'Diproses')
-                                        <span
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                                    @php
+                                        // Variabel penanda apakah resi masih menunggu jadwal
+                                        $isPending = ($resi->current_status === App\Enums\ShipmentStatus::DIPROSES || $resi->current_status?->value === 'Diproses');
+                                    @endphp
+
+                                    @if ($isPending)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
                                             Menunggu Jadwal
                                         </span>
                                     @else
-                                        <span
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
                                             {{ $resi->current_status->value ?? $resi->current_status }}
                                         </span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <a href="{{ route('shipments.show', $resi->id) }}"
-                                        class="p-2 inline-block text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Cetak Resi">
-                                        <i data-lucide="printer" class="w-4 h-4"></i>
-                                    </a>
+                                    <div class="flex justify-end gap-2">
+                                        <button @click="detailModalOpen = {{ $resi->id }}"
+                                            class="p-2 inline-block text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                            title="Lihat Detail Lengkap">
+                                            <i data-lucide="eye" class="w-4 h-4"></i>
+                                        </button>
+
+                                        @if ($isPending && $resi->manifest_id === null)
+                                            <a href="{{ route('shipments.edit', $resi->id) }}"
+                                                class="p-2 inline-block text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                                                title="Edit Resi">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </a>
+                                        @endif
+
+                                        <a href="{{ route('shipments.show', $resi->id) }}"
+                                            class="p-2 inline-block text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            title="Cetak Resi">
+                                            <i data-lucide="printer" class="w-4 h-4"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -87,7 +134,11 @@
                                     <div class="flex flex-col items-center justify-center">
                                         <i data-lucide="package-open" class="w-12 h-12 mb-3 text-gray-300"></i>
                                         <p class="text-base font-medium text-gray-500">Belum ada data resi.</p>
-                                        <p class="text-sm">Klik tombol "Buat Resi Baru" untuk memproses paket.</p>
+                                        @if(request('status'))
+                                            <p class="text-sm">Tidak ada paket dengan status tersebut.</p>
+                                        @else
+                                            <p class="text-sm">Klik tombol "Buat Resi Baru" untuk memproses paket.</p>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -95,11 +146,153 @@
                     </tbody>
                 </table>
             </div>
+
             @if ($shipments->hasPages())
                 <div class="p-4 border-t border-gray-100 bg-gray-50/50">
-                    {{ $shipments->links() }}
+                    {{ $shipments->appends(request()->query())->links() }}
                 </div>
             @endif
         </div>
+
+        @foreach ($shipments as $resi)
+            <div x-show="detailModalOpen === {{ $resi->id }}" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm transition-opacity">
+
+                <div @click.away="detailModalOpen = null"
+                     x-show="detailModalOpen === {{ $resi->id }}"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
+
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                <i data-lucide="box" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-black text-gray-900 text-lg leading-tight">{{ $resi->tracking_number }}</h3>
+                                <p class="text-xs text-gray-500 font-medium">Data Lengkap Pengiriman</p>
+                            </div>
+                        </div>
+                        <button @click="detailModalOpen = null" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6 overflow-y-auto space-y-6 bg-gray-50/30">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i data-lucide="arrow-up-right" class="w-3 h-3 text-blue-500"></i> Pengirim</p>
+                                <p class="font-bold text-gray-900">{{ $resi->sender_name }}</p>
+                                <p class="text-sm text-blue-600 font-semibold mb-1">{{ $resi->sender_phone }}</p>
+                                <p class="text-xs text-gray-500 leading-relaxed">{{ $resi->sender_address }}, {{ $resi->origin_city }}</p>
+                            </div>
+                            <div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3 h-3 text-orange-500"></i> Penerima</p>
+                                <p class="font-bold text-gray-900">{{ $resi->receiver_name }}</p>
+                                <p class="text-sm text-blue-600 font-semibold mb-1">{{ $resi->receiver_phone }}</p>
+                                <p class="text-xs text-gray-500 leading-relaxed">{{ $resi->receiver_address }}, {{ $resi->destination_city }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+                                    <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Informasi Barang</p>
+                                </div>
+                                <ul class="p-4 space-y-3 text-sm">
+                                    <li class="flex justify-between border-b border-dashed border-gray-100 pb-2">
+                                        <span class="text-gray-500">Berat & Koli</span>
+                                        <span class="font-bold text-gray-900">{{ number_format($resi->weight, 1) }} Kg ({{ $resi->jumlah_koli }} Koli)</span>
+                                    </li>
+                                    <li class="flex justify-between border-b border-dashed border-gray-100 pb-2">
+                                        <span class="text-gray-500">Isi Paket</span>
+                                        <span class="font-bold text-gray-900 text-right">{{ $resi->item_description }}</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-500">Tanggal Dibuat</span>
+                                        <span class="font-semibold text-gray-700">{{ $resi->created_at->format('d M Y, H:i') }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white border border-blue-100 rounded-xl shadow-sm overflow-hidden">
+                                <div class="px-4 py-3 bg-blue-50/50 border-b border-blue-100">
+                                    <p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Detail Operasional</p>
+                                </div>
+                                <div class="p-4 text-sm">
+                                    @if($resi->manifest_id && $resi->manifest)
+                                        <ul class="space-y-3">
+                                            <li class="flex justify-between border-b border-dashed border-gray-100 pb-2">
+                                                <span class="text-gray-500 flex items-center gap-1"><i data-lucide="user" class="w-3.5 h-3.5"></i> Kurir</span>
+                                                <span class="font-bold text-gray-900">{{ optional($resi->manifest->courier)->name ?? '-' }}</span>
+                                            </li>
+                                            <li class="flex justify-between border-b border-dashed border-gray-100 pb-2">
+                                                <span class="text-gray-500 flex items-center gap-1"><i data-lucide="truck" class="w-3.5 h-3.5"></i> Kendaraan</span>
+                                                <span class="font-bold text-gray-900 uppercase">{{ optional($resi->manifest->vehicle)->license_plate ?? '-' }}</span>
+                                            </li>
+                                            <li class="flex justify-between border-b border-dashed border-gray-100 pb-2">
+                                                <span class="text-gray-500 flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Tgl Jalan</span>
+                                                <span class="font-semibold text-gray-700">{{ $resi->manifest->departed_at ? \Carbon\Carbon::parse($resi->manifest->departed_at)->format('d M Y, H:i') : '-' }}</span>
+                                            </li>
+                                            <li class="flex justify-between">
+                                                <span class="text-gray-500 flex items-center gap-1"><i data-lucide="activity" class="w-3.5 h-3.5"></i> Status</span>
+                                                <span class="font-bold text-blue-600">{{ $resi->current_status->value ?? $resi->current_status }}</span>
+                                            </li>
+                                        </ul>
+                                    @else
+                                        <div class="h-full flex flex-col items-center justify-center text-center py-4">
+                                            <i data-lucide="clock" class="w-8 h-8 text-gray-300 mb-2"></i>
+                                            <p class="text-gray-500 font-medium">Belum Dijadwalkan</p>
+                                            <p class="text-xs text-gray-400">Resi belum masuk manifest / truk.</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                        </div>
+
+                        @if(in_array(($resi->current_status->value ?? $resi->current_status), ['Selesai', 'Diterima']) && $resi->proofOfDelivery)
+                            <div class="bg-green-50/50 border border-green-200 rounded-xl shadow-sm overflow-hidden mt-4">
+                                <div class="px-4 py-3 bg-green-100/50 border-b border-green-200 flex items-center gap-2">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-green-600"></i>
+                                    <p class="text-[11px] font-bold text-green-700 uppercase tracking-wider">Proof of Delivery (Bukti Kirim)</p>
+                                </div>
+                                <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Diserahkan Kepada</p>
+                                            <p class="text-base font-black text-gray-900">{{ $resi->proofOfDelivery->received_by_name }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Waktu Diterima</p>
+                                            <p class="text-sm font-semibold text-gray-700">{{ \Carbon\Carbon::parse($resi->proofOfDelivery->delivered_at)->format('l, d F Y - H:i') }} WIB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        @if($resi->proofOfDelivery->photo_path)
+                                            <a href="{{ asset('storage/' . $resi->proofOfDelivery->photo_path) }}" target="_blank" class="block w-full sm:w-48 h-32 rounded-lg border-2 border-white shadow-md overflow-hidden hover:scale-105 transition-transform duration-300">
+                                                <img src="{{ asset('storage/' . $resi->proofOfDelivery->photo_path) }}" alt="Foto POD" class="w-full h-full object-cover">
+                                            </a>
+                                        @else
+                                            <div class="w-full sm:w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center border border-dashed border-gray-300 text-gray-400 text-xs font-medium">
+                                                Tidak ada foto
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
     </div>
 @endsection
