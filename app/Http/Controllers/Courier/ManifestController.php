@@ -11,7 +11,6 @@ class ManifestController extends Controller
 {
     public function complete(Manifest $manifest)
     {
-        // Validasi Manual (Lebih aman untuk mengatasi masalah Enum)
         $unfinished = $manifest->shipments->filter(function ($shipment) {
             $status = $shipment->current_status->value ?? $shipment->current_status;
             return !in_array($status, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
