@@ -65,11 +65,10 @@ class User extends Authenticatable
         return $this->hasMany(Shipment::class, 'courier_id');
     }
 
-    /**
-     * Relasi: Manifest (Jadwal) apa saja yang pernah/sedang dijalankan kurir ini?
-     */
     public function manifests()
     {
         return $this->hasMany(Manifest::class, 'courier_id');
     }
+
 }
+        

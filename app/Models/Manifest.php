@@ -19,10 +19,6 @@ class Manifest extends Model
         'arrived_at'  => 'datetime',
     ];
 
-    // ==========================================
-    // RELASI DATABASE
-    // ==========================================
-
     // Relasi balik ke Kurir (User)
     public function courier()
     {

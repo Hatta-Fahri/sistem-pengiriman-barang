@@ -33,8 +33,10 @@ class Shipment extends Model
 
     public function proofOfDelivery()
     {
-        return $this->hasOne(ProofOfDelivery::class);
+        return $this->hasOne(ProofOfDelivery::class, 'shipment_id', 'id');
     }
+
+
 
     // =========================================================
     // SCOPE PENCARIAN
