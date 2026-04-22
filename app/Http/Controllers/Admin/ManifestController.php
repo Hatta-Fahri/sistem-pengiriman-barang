@@ -23,8 +23,10 @@ class ManifestController extends Controller
      */
     public function create()
     {
-        // Hanya ambil resi yang belum masuk manifest manapun
-        $availableShipments = Shipment::whereNull('manifest_id')->get();
+        // 👇 PERUBAHAN DI SINI: Ambil resi yang belum ada jadwal ATAU resi yang statusnya 'Gagal Dikirim'
+        $availableShipments = Shipment::whereNull('manifest_id')
+                                      ->orWhere('current_status', 'Gagal Dikirim')
+                                      ->get();
 
         // 1. FILTER KENDARAAN: Ambil ID truk yang sedang dipakai (Persiapan / Sedang Jalan)
         $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
@@ -89,7 +91,7 @@ class ManifestController extends Controller
                     'status'           => 'Persiapan',
                 ]);
 
-                // 2. Masukkan Resi ke Manifest & Ubah Statusnya menjadi 'Diproses'
+                // 2. Masukkan Resi ke Manifest & Ubah Statusnya menjadi 'Diproses' (Otomatis meriset status 'Gagal Dikirim')
                 Shipment::whereIn('id', $request->shipment_ids)->update([
                     'manifest_id'    => $manifest->id,
                     'current_status' => 'Diproses'
@@ -115,9 +117,10 @@ class ManifestController extends Controller
             return redirect()->route('manifests.index')->withErrors('Hanya jadwal Persiapan yang bisa diedit.');
         }
 
-        // Ambil resi yang belum ada jadwal + resi yang SEDANG ada di jadwal ini
+        // 👇 PERUBAHAN DI SINI: Ambil resi kosong + resi di manifest ini + resi yang 'Gagal Dikirim'
         $availableShipments = Shipment::whereNull('manifest_id')
                                       ->orWhere('manifest_id', $manifest->id)
+                                      ->orWhere('current_status', 'Gagal Dikirim')
                                       ->get();
 
         // 1. FILTER KENDARAAN (Kecuali yang ada di manifest ini)
@@ -185,7 +188,7 @@ class ManifestController extends Controller
                 // 1. Lepas semua resi lama dari manifest ini
                 Shipment::where('manifest_id', $manifest->id)->update(['manifest_id' => null, 'current_status' => 'Diproses']);
 
-                // 2. Masukkan resi baru hasil editan
+                // 2. Masukkan resi baru hasil editan (termasuk me-reset status jika tadinya 'Gagal Dikirim')
                 Shipment::whereIn('id', $request->shipment_ids)->update(['manifest_id' => $manifest->id, 'current_status' => 'Diproses']);
 
                 // 3. Update data manifest

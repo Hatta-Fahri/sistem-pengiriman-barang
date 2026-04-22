@@ -52,6 +52,23 @@ class ShipmentController extends Controller
         return view('admin.shipments.edit', compact('shipment', 'origins'));
     }
 
+    public function destroy($id)
+    {
+        $shipment = Shipment::findOrFail($id);
+
+        // Keamanan Tambahan:
+        // Pastikan hanya resi berstatus Diproses (belum jalan) yang bisa dihapus.
+        $statusVal = $shipment->current_status->value ?? $shipment->current_status;
+
+        if ($statusVal !== 'Diproses' || $shipment->manifest_id !== null) {
+            return redirect()->route('shipments.index')->withErrors('Resi ini sudah dijadwalkan atau dalam perjalanan, tidak dapat dihapus!');
+        }
+
+        $shipment->delete();
+
+        return redirect()->route('shipments.index')->with('success', 'Resi berhasil dihapus.');
+    }
+
     public function update(Request $request, Shipment $shipment)
     {
         // SECURITY CHECK: Double cross-check saat di-submit
