@@ -24,7 +24,7 @@
         </div>
     @endif
 
-    @if($activeManifest)
+    @if($activeManifest)    
         @php
             $totalPaket = $activeManifest->shipments->count();
 
@@ -155,31 +155,47 @@
 
                                     <div>
                                         <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2">
-                                            <i data-lucide="camera" class="w-3 h-3 inline"></i> Foto Bukti Paket (Live Camera) <span class="text-red-500">*</span>
+                                            <i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti Pengiriman (POD) <span class="text-red-500">*</span>
                                         </label>
 
                                         <input type="hidden" name="photo_base64" x-model="photoData" :required="statusPilihan === 'Diterima'">
 
-                                        <div x-show="!isCameraOpen && !hasCaptured" @click="initCamera()" class="w-full h-40 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm">
-                                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                                                <i data-lucide="camera" class="w-6 h-6 text-blue-600"></i>
-                                            </div>
-                                            <span class="text-sm font-bold text-blue-700">Sentuh untuk Buka Kamera</span>
+                                        <div x-show="!isCameraOpen && !hasCaptured" class="grid grid-cols-2 gap-3">
+                                            <button type="button" @click="initCamera()" class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm focus:outline-none">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                                    <i data-lucide="camera" class="w-5 h-5 text-blue-600"></i>
+                                                </div>
+                                                <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Live Kamera</span>
+                                            </button>
+
+                                            <label class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm relative">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                                    <i data-lucide="image" class="w-5 h-5 text-blue-600"></i>
+                                                </div>
+                                                <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Pilih Galeri</span>
+                                                <input type="file" accept="image/*" class="hidden" @change="handleFileUpload($event)">
+                                            </label>
                                         </div>
 
                                         <div x-show="isCameraOpen && !hasCaptured" class="relative w-full rounded-xl overflow-hidden bg-black shadow-md border border-gray-200 aspect-video">
                                             <video x-ref="video" class="w-full h-full object-cover" playsinline autoplay></video>
 
-                                            <button type="button" @click="capture()" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
-                                                <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
-                                            </button>
+                                            <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 px-4">
+                                                <button type="button" @click="stopCamera()" class="w-10 h-10 bg-red-500 rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform text-white">
+                                                    <i data-lucide="x" class="w-5 h-5"></i>
+                                                </button>
+
+                                                <button type="button" @click="capture()" class="w-14 h-14 bg-white rounded-full border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+                                                    <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div x-show="hasCaptured" class="relative w-full rounded-xl overflow-hidden border-2 border-green-400 shadow-md">
                                             <img :src="photoData" class="w-full h-auto object-cover aspect-video">
 
                                             <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1">
-                                                <i data-lucide="check" class="w-3 h-3"></i> Foto Terekam
+                                                <i data-lucide="check" class="w-3 h-3"></i> Siap Dikirim
                                             </div>
 
                                             <button type="button" @click="retake()" class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-red-700 flex items-center gap-1 transition-colors">
@@ -253,7 +269,7 @@
             photoData: '',
 
             initCamera() {
-                // Minta izin dan buka kamera (Prioritaskan kamera belakang di HP)
+                // Minta izin dan buka kamera
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
                     .then(stream => {
                         this.stream = stream;
@@ -261,34 +277,44 @@
                         this.$refs.video.srcObject = stream;
                     })
                     .catch(err => {
-                        alert("Gagal mengakses kamera. Pastikan browser diizinkan untuk membuka kamera. Error: " + err);
+                        alert("Gagal mengakses kamera. Error: " + err);
                     });
             },
 
             capture() {
-                // Gambar video frame ke dalam canvas
                 const canvas = this.$refs.canvas;
                 const video = this.$refs.video;
 
-                // Set ukuran canvas sama dengan resolusi video asli
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-
-                // Jepret!
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                // Konversi canvas jadi data gambar Base64 (JPG kualitas 80%)
                 this.photoData = canvas.toDataURL('image/jpeg', 0.8);
                 this.hasCaptured = true;
-
-                // Matikan kamera setelah jepret biar hemat baterai
                 this.stopCamera();
+            },
+
+            // 👇 FUNGSI BARU UNTUK HANDLE UPLOAD FILE GALERI 👇
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.photoData = e.target.result; // Set data Base64
+                    this.hasCaptured = true;
+                    this.isCameraOpen = false;
+                };
+                reader.readAsDataURL(file);
+
+                // Reset input value agar user bisa pilih foto yang sama jika klik "Ulangi"
+                event.target.value = '';
             },
 
             retake() {
                 this.hasCaptured = false;
                 this.photoData = '';
-                this.initCamera();
+                this.stopCamera(); // Mengembalikan layar ke pilihan awal (Pilih Kamera / Upload)
             },
 
             stopCamera() {

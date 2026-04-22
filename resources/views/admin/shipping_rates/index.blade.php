@@ -58,7 +58,7 @@
                             <td class="px-6 py-4">
                                 <div class="font-bold text-blue-700">Rp {{ number_format($rate->cost_per_kg, 0, ',', '.') }}</div>
                             </td>
-                            <td class="px-6 py-4 text-right flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <td class="px-6 py-4 text-right flex justify-end gap-3">
                                 <button @click="openEdit({{ $rate }})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Tarif">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
