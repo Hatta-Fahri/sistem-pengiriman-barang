@@ -218,12 +218,17 @@
 
                             @if(($isPengantaranActive || $isPengantaranPast) && optional($shipment->manifest)->courier)
                                 <div class="mt-3 bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center">
-                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                                        <i data-lucide="user" class="w-5 h-5"></i>
                                     </div>
                                     <div>
                                         <p class="text-[10px] font-bold text-gray-500 uppercase">Petugas Kurir</p>
                                         <p class="text-sm font-bold text-gray-900">{{ $shipment->manifest->courier->name }}</p>
+                                        @if(optional($shipment->manifest->courier)->phone)
+                                            <a href="tel:{{ $shipment->manifest->courier->phone }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 mt-0.5 transition-colors">
+                                                <i data-lucide="phone" class="w-3 h-3"></i> {{ $shipment->manifest->courier->phone }}
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             @endif

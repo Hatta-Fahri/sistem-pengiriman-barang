@@ -12,9 +12,19 @@
             </div>
 
             <div class="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
-                <form action="{{ route('shipments.index') }}" method="GET" class="w-full sm:w-auto">
-                    <div class="relative">
-                        <select name="status" onchange="this.form.submit()" class="w-full sm:w-56 appearance-none bg-white text-sm font-semibold text-gray-700 py-2.5 pl-10 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
+
+                <form action="{{ route('shipments.index') }}" method="GET" class="w-full flex flex-col sm:flex-row gap-3">
+
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Resi atau Penerima..."
+                            class="w-full text-sm font-semibold text-gray-700 py-2.5 pl-10 pr-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm transition-colors placeholder-gray-400">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full sm:w-56">
+                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none bg-white text-sm font-semibold text-gray-700 py-2.5 pl-10 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
                             <option value="">Semua Status</option>
                             <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}>⏳ Menunggu Jadwal</option>
                             <option value="Dalam Perjalanan" {{ request('status') == 'Dalam Perjalanan' ? 'selected' : '' }}>🚚 Dalam Perjalanan</option>
@@ -31,13 +41,17 @@
                             <i data-lucide="chevron-down" class="w-4 h-4"></i>
                         </div>
                     </div>
+
+                    <button type="submit" class="hidden sm:flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 rounded-xl transition-colors font-bold shadow-sm border border-gray-200">
+                        Cari
+                    </button>
                 </form>
 
                 <a href="{{ route('shipments.create') }}"
-                    class="flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    <span>Buat Resi Baru</span>
-                </a>
+   class="flex w-full sm:w-auto items-center justify-center gap-1.5 bg-blue-700 text-white px-3 py-1.5 text-sm rounded-lg font-medium shadow-sm hover:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
+    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+    <span>Buat Resi</span>
+</a>
             </div>
         </div>
 
@@ -105,7 +119,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
+                                    <div class="flex justify-end items-center gap-2">
                                         <button @click="detailModalOpen = {{ $resi->id }}"
                                             class="p-2 inline-block text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                             title="Lihat Detail Lengkap">
@@ -118,6 +132,14 @@
                                                 title="Edit Resi">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                                             </a>
+
+                                            <form action="{{ route('shipments.destroy', $resi->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus resi {{ $resi->tracking_number }} ini secara permanen?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Resi">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
                                         @endif
 
                                         <a href="{{ route('shipments.show', $resi->id) }}"
@@ -133,11 +155,12 @@
                                 <td colspan="5" class="px-6 py-12 text-center text-gray-400">
                                     <div class="flex flex-col items-center justify-center">
                                         <i data-lucide="package-open" class="w-12 h-12 mb-3 text-gray-300"></i>
-                                        <p class="text-base font-medium text-gray-500">Belum ada data resi.</p>
-                                        @if(request('status'))
-                                            <p class="text-sm">Tidak ada paket dengan status tersebut.</p>
+                                        <p class="text-base font-medium text-gray-500">Data resi tidak ditemukan.</p>
+                                        @if(request('search') || request('status'))
+                                            <p class="text-sm mt-1">Coba sesuaikan filter atau kata kunci pencarian Anda.</p>
+                                            <a href="{{ route('shipments.index') }}" class="mt-3 text-blue-600 hover:underline text-sm font-bold">Reset Pencarian</a>
                                         @else
-                                            <p class="text-sm">Klik tombol "Buat Resi Baru" untuk memproses paket.</p>
+                                            <p class="text-sm mt-1">Klik tombol "Buat Resi Baru" untuk memproses paket pertama Anda.</p>
                                         @endif
                                     </div>
                                 </td>
