@@ -18,7 +18,7 @@
         @endif
 
         @if ($activeManifest)
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
                 <div
                     class="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] border-l-4 border-l-blue-600 group">
@@ -56,17 +56,33 @@
                 <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]">
                     <div class="flex justify-between items-start mb-4">
                         <div class="bg-green-50 p-2.5 rounded-xl border border-green-100">
-                            <i data-lucide="truck" class="w-5 h-5 text-green-600"></i>
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">Sukses Diantar</p>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-3xl font-extrabold text-green-600 tracking-tight">
+                                {{ $totalDelivered ?? 0 }}</h3>
+                            <span class="text-sm text-gray-500 font-bold">Resi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-indigo-50 p-2.5 rounded-xl border border-indigo-100">
+                            <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i>
                         </div>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm font-medium mb-1">Armada Operasional</p>
-                        <h3 class="text-2xl font-extrabold text-gray-900 tracking-tight">
+                        <h3 class="text-2xl font-extrabold text-gray-900 tracking-tight truncate">
                             {{ $activeManifest->vehicle->license_plate ?? 'Mobil' }}</h3>
                     </div>
                     <div class="mt-4 flex items-center gap-2">
                         <span
-                            class="text-xs text-gray-400 font-medium uppercase">{{ $activeManifest->vehicle->type ?? 'Kendaraan Logistik' }}</span>
+                            class="text-xs text-gray-400 font-medium uppercase truncate">{{ $activeManifest->vehicle->type ?? 'Kendaraan Logistik' }}</span>
                     </div>
                 </div>
 
@@ -93,15 +109,26 @@
                 </div>
             </div>
         @else
-            <div
-                class="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col items-center justify-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div
-                    class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4 border border-gray-100">
-                    <i data-lucide="coffee" class="w-10 h-10"></i>
+                    class="md:col-span-2 bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col items-center justify-center">
+                    <div
+                        class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4 border border-gray-100">
+                        <i data-lucide="coffee" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Tugas Aktif</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">Anda sedang tidak ditugaskan pada manifest apapun hari ini.
+                        Silakan hubungi Admin Gudang jika ada jadwal yang terlewat.</p>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Tugas Aktif</h3>
-                <p class="text-gray-500 max-w-md mx-auto">Anda sedang tidak ditugaskan pada manifest apapun hari ini.
-                    Silakan hubungi Admin Gudang jika ada jadwal yang terlewat.</p>
+
+                <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col items-center justify-center text-center">
+                    <div class="bg-green-50 p-4 rounded-full border border-green-100 mb-4">
+                        <i data-lucide="award" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm font-medium mb-1">Total Kinerja Anda</p>
+                    <h3 class="text-5xl font-black text-green-600 tracking-tight my-2">{{ $totalDelivered ?? 0 }}</h3>
+                    <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Resi Selesai</span>
+                </div>
             </div>
         @endif
 

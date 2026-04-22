@@ -74,7 +74,7 @@
         <span class="text-[12px] font-bold text-gray-400 uppercase tracking-wider">Tugas Lapangan</span>
     </div>
 
-    <a href="{{ route('courier.shipments') ?? '#' }}"
+    <a href="{{ route('courier.shipments') }}"
         class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl transition-all
        {{ request()->routeIs('courier.shipments') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
         <div class="flex items-center gap-3">
@@ -83,10 +83,13 @@
         </div>
     </a>
 
-    <a href="#"
-        class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group">
-        <i data-lucide="history" class="w-[18px] h-[18px] group-hover:text-blue-600 transition-colors"></i>
-        <span class="text-[14px]">Riwayat Tugas Selesai</span>
+    <a href="{{ route('courier.history.index') }}"
+        class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl transition-all
+       {{ request()->routeIs('courier.history.index') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
+        <div class="flex items-center gap-3">
+            <i data-lucide="history" class="w-[18px] h-[18px] {{ request()->routeIs('courier.history.index') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
+            <span class="text-[14px]">Riwayat Tugas Selesai</span>
+        </div>
     </a>
 @endif
 
