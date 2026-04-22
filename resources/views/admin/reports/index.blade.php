@@ -12,7 +12,7 @@
         </div>
 
         <div class="p-6 sm:p-8">
-            <form action="#" method="GET" class="space-y-8">
+            <form action="{{ route('reports.generate') }}" method="GET" class="space-y-8" target="_blank">
 
                 <div>
                     <h4 class="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">1. Pilih Rentang Waktu</h4>
@@ -32,8 +32,8 @@
                     <h4 class="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">2. Pilih Jenis Laporan</h4>
                     <select name="report_type" required class="w-full rounded-xl border-gray-300 focus:ring-blue-500 text-sm bg-gray-50 cursor-pointer">
                         <option value="">-- Silakan Pilih Laporan --</option>
-                        <option value="shipment">Laporan Pengiriman & Tonase Barang (Shipment Report)</option>
-                        <option value="courier">Laporan Kinerja Kurir (Courier Performance)</option>
+                        <option value="shipment">Laporan Rekapitulasi Data Pengiriman</option>
+                        <option value="courier">Laporan Detail Pengiriman</option>
                     </select>
                 </div>
 
@@ -43,11 +43,6 @@
                         <button type="submit" name="format" value="pdf" class="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-red-50 text-red-700 border border-red-200 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors shadow-sm focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                             Download format PDF
-                        </button>
-
-                        <button type="submit" name="format" value="excel" class="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-green-50 text-green-700 border border-green-200 rounded-xl font-bold text-sm hover:bg-green-100 transition-colors shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-1">
-                            <i data-lucide="sheet" class="w-5 h-5"></i>
-                            Download format Excel
                         </button>
                     </div>
                 </div>

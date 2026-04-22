@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Courier\DashboardController as CourierDashboardController;
 use App\Http\Controllers\Courier\ShipmentController as CourierShipmentController;
 use App\Http\Controllers\Courier\ManifestController as CourierManifestController;
+use App\Http\Controllers\Courier\HistoryController;
 
 // Public Controllers
 use App\Http\Controllers\TrackingController;
@@ -70,6 +71,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('manifests', ManifestController::class);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
     });
 
     // MODULE: COURIER SYSTEM
@@ -83,5 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/shipments/{shipment}/status', [CourierShipmentController::class, 'updateStatus'])->name('courier.shipments.update-status');
 
         Route::post('/manifests/{manifest}/complete', [CourierManifestController::class, 'complete'])->name('courier.manifests.complete');
+
+        Route::get('/history', [HistoryController::class, 'index'])->name('courier.history.index');
     });
 });

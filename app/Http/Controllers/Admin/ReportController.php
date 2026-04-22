@@ -3,64 +3,60 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Shipment;
 use App\Models\User;
-use App\Models\Manifest;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    /**
-     * Menampilkan Halaman Pusat Laporan (Index)
-     */
     public function index()
     {
-        // Statistik ringkas murni operasional (TANPA UANG)
-        $stats = [
-            'total_shipments' => Shipment::count(),
-            'total_tonase'    => Shipment::sum('weight'), // Mengganti revenue dengan total tonase
-            'total_couriers'  => User::where('role', 'kurir')->count(),
-            'total_manifests' => Manifest::where('status', 'Selesai')->count(),
-        ];
-
-        return view('admin.reports.index', compact('stats'));
+        return view('admin.reports.index');
     }
 
-    /**
-     * 📦 LAPORAN 1: Shipment Report
-     */
-    public function shipmentReport(Request $request)
+    public function generate(Request $request)
     {
-        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', Carbon::now()->toDateString());
+        // Validasi format dihapus karena sekarang default langsung ke PDF (Print View)
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'report_type' => 'required|in:shipment,courier'
+        ]);
 
-        $query = Shipment::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $type = $request->report_type;
 
-        $shipments = $query->latest()->get();
-
-        // Ringkasan operasional (TANPA OMZET)
-        $stats = [
-            'total_resi'   => $query->count(),
-            'total_berat'  => $query->sum('weight'),
-            'total_koli'   => $query->sum('jumlah_koli'), // Mengganti omzet dengan jumlah koli
-            'status_count' => $query->get()->groupBy('current_status')->map->count()
-        ];
-
-        return view('admin.reports.shipments', compact('shipments', 'stats', 'startDate', 'endDate'));
+        if ($type === 'shipment') {
+            return $this->generateShipmentReport($startDate, $endDate);
+        } else {
+            return $this->generateCourierReport($startDate, $endDate);
+        }
     }
 
-    /**
-     * 🛵 LAPORAN 2: Courier Performance
-     */
-    public function courierPerformance(Request $request)
+    private function generateShipmentReport($start, $end)
     {
-        $couriers = User::where('role', 'kurir')
-            ->withCount(['manifests' => function($q) {
-                $q->where('status', 'Selesai');
-            }])
+        $shipments = Shipment::whereBetween('created_at', [$start, $end])->latest()->get();
+
+        // Menghitung Tonase (Total Berat) dan Total Pendapatan
+        $totalWeight = $shipments->sum('weight');
+        $totalCost = $shipments->sum('shipping_cost');
+
+        // Langsung return ke view cetak PDF
+        return view('admin.reports.print-shipment', compact('shipments', 'start', 'end', 'totalWeight', 'totalCost'));
+    }
+
+    private function generateCourierReport($start, $end)
+    {
+        // Tarik data resi yang statusnya sudah Selesai/Diterima beserta relasi lengkapnya
+        $shipments = Shipment::with(['manifest.courier', 'manifest.vehicle', 'proofOfDelivery'])
+            ->whereBetween('updated_at', [$start, $end])
+            ->whereIn('current_status', ['Diterima', 'Selesai'])
+            ->latest('updated_at')
             ->get();
 
-        return view('admin.reports.couriers', compact('couriers'));
+        // Langsung return ke view cetak PDF
+        return view('admin.reports.print-detail', compact('shipments', 'start', 'end'));
     }
 }
