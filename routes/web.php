@@ -22,7 +22,6 @@ use App\Http\Controllers\Courier\HistoryController;
 // Public Controllers
 use App\Http\Controllers\TrackingController;
 
-
 // ==========================================================
 // 1. PUBLIC ROUTES (Landing Page & Tracking Customer)
 // ==========================================================
@@ -68,6 +67,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('manifests/{manifest}/berangkatkan', [ManifestController::class, 'berangkatkan'])->name('manifests.berangkatkan');
         Route::post('manifests/{manifest}/generate', [ManifestController::class, 'generate'])->name('manifests.generate');
+        Route::post('/manifests/{manifest}/start', [\App\Http\Controllers\Courier\DashboardController::class, 'startJourney'])->name('courier.manifests.start');
         Route::resource('manifests', ManifestController::class);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

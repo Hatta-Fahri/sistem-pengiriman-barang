@@ -79,10 +79,8 @@
                                         $totalWeight = $manifest->total_weight ?? 0;
                                         $percentage = $capacity > 0 ? ($totalWeight / $capacity) * 100 : 0;
 
-                                        // Animasi mentok di 100% agar UI tidak jebol
                                         $clampedPercentage = $percentage > 100 ? 100 : $percentage;
 
-                                        // Penentuan warna (Sama seperti JS: >100 Merah, >=85 Oranye, <85 Biru)
                                         $barColor =
                                             $percentage > 100
                                                 ? 'bg-red-600'
@@ -116,8 +114,10 @@
 
                                 <td class="px-6 py-4">
                                     @php
+                                        // 👇 PERBAIKAN: Menambahkan status 'Ditugaskan' di sini 👇
                                         $statusColor = match ($manifest->status) {
                                             'Persiapan' => 'bg-gray-100 text-gray-700 border border-gray-200',
+                                            'Ditugaskan' => 'bg-indigo-100 text-indigo-700 border border-indigo-200',
                                             'Sedang Jalan' => 'bg-blue-100 text-blue-700 border border-blue-200',
                                             'Selesai' => 'bg-green-100 text-green-700 border border-green-200',
                                             default => 'bg-gray-100 text-gray-700 border border-gray-200',
@@ -135,11 +135,11 @@
                                         @if ($manifest->status === 'Persiapan')
                                             <form action="{{ route('manifests.berangkatkan', $manifest->id) }}"
                                                 method="POST"
-                                                onsubmit="return confirm('Truk sudah siap dan bak ditutup? Berangkatkan sekarang?');">
+                                                onsubmit="return confirm('Tugaskan manifest ini ke kurir terkait?');">
                                                 @csrf
                                                 <button type="submit"
                                                     class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1 shadow-sm">
-                                                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Jalan
+                                                    <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i> Tugaskan
                                                 </button>
                                             </form>
                                         @endif

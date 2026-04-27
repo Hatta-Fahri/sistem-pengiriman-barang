@@ -18,17 +18,12 @@ class ManifestController extends Controller
         return view('admin.manifests.index', compact('manifests'));
     }
 
-    /**
-     * Tampilkan Halaman Buat Jadwal (One-Stop Dispatch)
-     */
     public function create()
     {
-        // 👇 PERUBAHAN DI SINI: Ambil resi yang belum ada jadwal ATAU resi yang statusnya 'Gagal Dikirim'
         $availableShipments = Shipment::whereNull('manifest_id')
-                                      ->orWhere('current_status', 'Gagal Dikirim')
+                                      ->orWhere('current_status', 'Penundaan Pengiriman')
                                       ->get();
 
-        // 1. FILTER KENDARAAN: Ambil ID truk yang sedang dipakai (Persiapan / Sedang Jalan)
         $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
                                       ->whereNotNull('vehicle_id')
                                       ->pluck('vehicle_id');
@@ -37,7 +32,6 @@ class ManifestController extends Controller
                                     ->whereNotIn('id', $assignedVehicleIds)
                                     ->get();
 
-        // 2. FILTER KURIR: Ambil ID Kurir yang sedang bertugas (Persiapan / Sedang Jalan)
         $assignedCourierIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
                                       ->whereNotNull('courier_id')
                                       ->pluck('courier_id');
@@ -50,9 +44,6 @@ class ManifestController extends Controller
         return view('admin.manifests.create', compact('availableShipments', 'availableVehicles', 'availableCouriers'));
     }
 
-    /**
-     * Simpan Jadwal Sekaligus Muatan Resi-nya
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -68,18 +59,14 @@ class ManifestController extends Controller
 
         try {
             DB::transaction(function () use ($request) {
-                // Hitung total berat
                 $shipments = Shipment::whereIn('id', $request->shipment_ids)->get();
                 $totalWeight = $shipments->sum('weight');
-
                 $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
-                // Validasi Kapasitas
                 if ($totalWeight > $vehicle->capacity) {
                     throw new \Exception("Kapasitas overload! Total muatan " . number_format($totalWeight, 1) . " Kg melebihi kapasitas mobil.");
                 }
 
-                // 1. Buat Manifest Baru (Status: Persiapan / Ready)
                 $manifest = Manifest::create([
                     'manifest_code'    => $this->generateManifestCode(),
                     'jalur_pengiriman' => $request->jalur_pengiriman,
@@ -91,39 +78,36 @@ class ManifestController extends Controller
                     'status'           => 'Persiapan',
                 ]);
 
-                // 2. Masukkan Resi ke Manifest & Ubah Statusnya menjadi 'Diproses' (Otomatis meriset status 'Gagal Dikirim')
-                Shipment::whereIn('id', $request->shipment_ids)->update([
-                    'manifest_id'    => $manifest->id,
-                    'current_status' => 'Diproses'
-                ]);
+                // 👇 LOGIKA BARU: Jangan reset paket yang sedang ditunda
+                foreach ($shipments as $shipment) {
+                    $statusVal = $shipment->current_status->value ?? $shipment->current_status;
+                    if ($statusVal !== 'Penundaan Pengiriman') {
+                        $shipment->current_status = 'Diproses';
+                    }
+                    $shipment->manifest_id = $manifest->id;
+                    $shipment->save();
+                }
 
-                // 3. Ubah status Mobil
                 $vehicle->update(['status' => 'Terjadwal']);
             });
 
             return redirect()->route('manifests.index')->with('success', 'Jadwal & Muatan berhasil disimpan! Siap diberangkatkan.');
-
         } catch (\Exception $e) {
             return redirect()->back()->withInput()->withErrors($e->getMessage());
         }
     }
 
-    /**
-     * Halaman Edit Jadwal (Hanya untuk status Persiapan)
-     */
     public function edit(Manifest $manifest)
     {
         if ($manifest->status !== 'Persiapan') {
             return redirect()->route('manifests.index')->withErrors('Hanya jadwal Persiapan yang bisa diedit.');
         }
 
-        // 👇 PERUBAHAN DI SINI: Ambil resi kosong + resi di manifest ini + resi yang 'Gagal Dikirim'
         $availableShipments = Shipment::whereNull('manifest_id')
                                       ->orWhere('manifest_id', $manifest->id)
-                                      ->orWhere('current_status', 'Gagal Dikirim')
+                                      ->orWhere('current_status', 'Penundaan Pengiriman')
                                       ->get();
 
-        // 1. FILTER KENDARAAN (Kecuali yang ada di manifest ini)
         $otherAssignedVehicles = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
                                          ->where('id', '!=', $manifest->id)
                                          ->whereNotNull('vehicle_id')
@@ -131,10 +115,9 @@ class ManifestController extends Controller
 
         $availableVehicles = Vehicle::where('status', 'Tersedia')
                                     ->whereNotIn('id', $otherAssignedVehicles)
-                                    ->orWhere('id', $manifest->vehicle_id) // Tetap munculkan truk yang sudah terpilih sebelumnya
+                                    ->orWhere('id', $manifest->vehicle_id)
                                     ->get();
 
-        // 2. FILTER KURIR (Kecuali yang ada di manifest ini)
         $otherAssignedCouriers = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
                                          ->where('id', '!=', $manifest->id)
                                          ->whereNotNull('courier_id')
@@ -143,15 +126,12 @@ class ManifestController extends Controller
         $availableCouriers = User::where('role', 'kurir')
                                  ->where('status', 'Aktif')
                                  ->whereNotIn('id', $otherAssignedCouriers)
-                                 ->orWhere('id', $manifest->courier_id) // Tetap munculkan kurir yang sudah terpilih sebelumnya
+                                 ->orWhere('id', $manifest->courier_id)
                                  ->get();
 
         return view('admin.manifests.edit', compact('manifest', 'availableShipments', 'availableVehicles', 'availableCouriers'));
     }
 
-    /**
-     * Simpan Perubahan Jadwal & Muatan
-     */
     public function update(Request $request, Manifest $manifest)
     {
         if ($manifest->status !== 'Persiapan') {
@@ -171,27 +151,39 @@ class ManifestController extends Controller
             DB::transaction(function () use ($request, $manifest) {
                 $shipments = Shipment::whereIn('id', $request->shipment_ids)->get();
                 $totalWeight = $shipments->sum('weight');
-
                 $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
                 if ($totalWeight > $vehicle->capacity) {
                     throw new \Exception("Kapasitas overload!");
                 }
 
-                // Kembalikan status kendaraan lama jika diganti
                 if ($manifest->vehicle_id && $manifest->vehicle_id != $request->vehicle_id) {
                     Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
                 }
 
                 $vehicle->update(['status' => 'Terjadwal']);
 
-                // 1. Lepas semua resi lama dari manifest ini
-                Shipment::where('manifest_id', $manifest->id)->update(['manifest_id' => null, 'current_status' => 'Diproses']);
+                // Lepas resi lama
+                $oldShipments = Shipment::where('manifest_id', $manifest->id)->get();
+                foreach ($oldShipments as $old) {
+                    $val = $old->current_status->value ?? $old->current_status;
+                    if ($val !== 'Penundaan Pengiriman') {
+                        $old->current_status = 'Diproses';
+                    }
+                    $old->manifest_id = null;
+                    $old->save();
+                }
 
-                // 2. Masukkan resi baru hasil editan (termasuk me-reset status jika tadinya 'Gagal Dikirim')
-                Shipment::whereIn('id', $request->shipment_ids)->update(['manifest_id' => $manifest->id, 'current_status' => 'Diproses']);
+                // Masukkan resi baru
+                foreach ($shipments as $newShip) {
+                    $val = $newShip->current_status->value ?? $newShip->current_status;
+                    if ($val !== 'Penundaan Pengiriman') {
+                        $newShip->current_status = 'Diproses';
+                    }
+                    $newShip->manifest_id = $manifest->id;
+                    $newShip->save();
+                }
 
-                // 3. Update data manifest
                 $manifest->update([
                     'jalur_pengiriman' => $request->jalur_pengiriman,
                     'vehicle_id'       => $request->vehicle_id,
@@ -208,9 +200,6 @@ class ManifestController extends Controller
         }
     }
 
-    /**
-     * Halaman Detail Read-Only (Untuk status Sedang Jalan & Selesai)
-     */
     public function show(Manifest $manifest)
     {
         $manifest->load(['shipments', 'vehicle', 'courier']);
@@ -220,26 +209,28 @@ class ManifestController extends Controller
     public function berangkatkan(Manifest $manifest)
     {
         DB::transaction(function () use ($manifest) {
-            $manifest->update(['status' => 'Sedang Jalan', 'departed_at' => now()]);
-
-            // PERBAIKAN: Ubah status menjadi 'Dalam Perjalanan'
-            Shipment::where('manifest_id', $manifest->id)->update([
-                'current_status' => 'Dalam Perjalanan'
-            ]);
+            $manifest->update(['status' => 'Sedang Jalan']);
 
             if ($manifest->vehicle) {
                 $manifest->vehicle->update(['status' => 'Sedang Digunakan']);
             }
         });
 
-        return back()->with('success', 'Truk diberangkatkan!');
+        return back()->with('success', 'Tugas berhasil diteruskan ke aplikasi Kurir!');
     }
 
     public function destroy(Manifest $manifest)
     {
-        Shipment::where('manifest_id', $manifest->id)->update(['manifest_id' => null, 'current_status' => 'Diproses']);
+        $shipments = Shipment::where('manifest_id', $manifest->id)->get();
+        foreach ($shipments as $shipment) {
+            $val = $shipment->current_status->value ?? $shipment->current_status;
+            if ($val !== 'Penundaan Pengiriman') {
+                $shipment->current_status = 'Diproses';
+            }
+            $shipment->manifest_id = null;
+            $shipment->save();
+        }
 
-        // Kembalikan status mobil jika dihapus
         if ($manifest->vehicle_id) {
             Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
         }

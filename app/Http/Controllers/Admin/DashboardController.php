@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. PENGIRIMAN AKTIF (Semua status kecuali Selesai, Gagal, Ditunda)
-        $activeShipments = Shipment::whereNotIn('current_status', ['Diterima', 'Selesai', 'Gagal Dikirim', 'Penundaan Pengiriman'])->count();
+        $activeShipments = Shipment::whereNotIn('current_status', ['Diterima', 'Selesai','Penundaan Pengiriman'])->count();
 
         // 2. TOTAL KURIR (Menggunakan enum 'kurir' dari tabel users)
         $totalCouriers = User::where('role', 'kurir')->count();

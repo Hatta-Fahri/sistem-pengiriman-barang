@@ -88,26 +88,43 @@
 
             </div>
 
-            <div
-                class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 md:p-8 relative">
-                <div class="absolute -right-10 -top-10 opacity-5">
-                    <i data-lucide="map" class="w-64 h-64"></i>
-                </div>
+            @if(is_null($activeManifest->departed_at))
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 md:p-8 text-center relative overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
+                        <i data-lucide="key" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-blue-900 mb-2">Tugas Baru Diterima!</h3>
+                    <p class="text-sm font-medium text-blue-700 mb-6 max-w-md mx-auto">Admin telah menugaskan manifest ini. Klik tombol di bawah saat armada mulai bergerak agar status pelanggan berubah menjadi <b>Dalam Perjalanan</b>.</p>
 
-                <div class="relative z-10 w-full mb-6 md:mb-0">
-                    <p class="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Rute Pengiriman Hari Ini</p>
-                    <h3 class="text-3xl font-black text-gray-900">{{ $activeManifest->jalur_pengiriman }}</h3>
-                    <p class="text-sm text-gray-500 mt-2 max-w-lg">Buka menu Daftar Paket untuk mulai meng-update status
-                        setiap resi yang telah sampai ke tangan pelanggan.</p>
+                    <form action="{{ route('courier.manifests.start', $activeManifest->id) }}" method="POST" onsubmit="return confirm('Mulai perjalanan sekarang? Status tracking resi pelanggan akan otomatis ter-update.');">
+                        @csrf
+                        <button type="submit" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-blue-700 text-white px-8 py-4 rounded-xl font-black shadow-lg shadow-blue-300 hover:bg-blue-800 transition-all transform active:scale-95">
+                            <i data-lucide="play" class="w-6 h-6 fill-current"></i> MULAI PERJALANAN SEKARANG
+                        </button>
+                    </form>
                 </div>
+            @else
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 md:p-8 relative">
+                    <div class="absolute -right-10 -top-10 opacity-5">
+                        <i data-lucide="map" class="w-64 h-64"></i>
+                    </div>
 
-                <div class="relative z-10 shrink-0 w-full md:w-auto">
-                    <a href="{{ route('courier.shipments') }}"
-                        class="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-blue-700 text-white px-6 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-800 transition-all">
-                        Lihat Daftar Paket <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
+                    <div class="relative z-10 w-full mb-6 md:mb-0">
+                        <p class="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Rute Pengiriman Hari Ini</p>
+                        <h3 class="text-3xl font-black text-gray-900">{{ $activeManifest->jalur_pengiriman }}</h3>
+                        <p class="text-sm text-gray-500 mt-2 max-w-lg">Buka menu Daftar Paket untuk mulai meng-update status
+                            setiap resi yang telah sampai ke tangan pelanggan.</p>
+                    </div>
+
+                    <div class="relative z-10 shrink-0 w-full md:w-auto">
+                        <a href="{{ route('courier.shipments') }}"
+                            class="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-blue-700 text-white px-6 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-800 transition-all">
+                            Lihat Daftar Paket <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
+            @endif
+
         @else
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div

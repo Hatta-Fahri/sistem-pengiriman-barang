@@ -9,7 +9,6 @@ enum ShipmentStatus: string
     case TIBA_DI_TUJUAN = 'Tiba di Tujuan';
     case DALAM_PENGANTARAN = 'Dalam Pengantaran';
     case DITERIMA = 'Diterima';
-    case GAGAL_DIKIRIM = 'Gagal Dikirim';
     case PENUNDAAN = 'Penundaan Pengiriman';
 
     public static function values(): array

@@ -70,41 +70,38 @@
 
         @if(isset($shipment))
             @php
-                // LOGIKA STATUS TIMELINE (BERDASARKAN ENUM ASLI)
                 $statusVal = $shipment->current_status->value ?? $shipment->current_status;
 
                 // Titik 1: Resi Dibuat
                 $isDiprosesActive = in_array($statusVal, ['Diproses', 'Menunggu Jadwal']);
-                $isDiprosesPast   = in_array($statusVal, ['Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran', 'Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
+                $isDiprosesPast   = in_array($statusVal, ['Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran', 'Penundaan Pengiriman', 'Diterima']);
 
                 // Titik 2: Dalam Perjalanan
                 $isPerjalananActive = in_array($statusVal, ['Dalam Perjalanan', 'Tiba di Tujuan']);
-                $isPerjalananPast   = in_array($statusVal, ['Dalam Pengantaran', 'Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
+                $isPerjalananPast   = in_array($statusVal, ['Dalam Pengantaran', 'Penundaan Pengiriman', 'Diterima']);
 
-                // Titik 3: Dalam Pengantaran
-                $isPengantaranActive = $statusVal === 'Dalam Pengantaran';
-                $isPengantaranPast   = in_array($statusVal, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
-
-                // Titik 4: Final
-                $isFinal   = in_array($statusVal, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
-                $isSelesai = $statusVal === 'Diterima';
-                $isGagal   = $statusVal === 'Gagal Dikirim';
+                // Titik 3: Dalam Pengantaran & Ditunda (Ditunda ditaruh di sini agar Step 4 tidak nyala)
+                $isPengantaranActive = in_array($statusVal, ['Dalam Pengantaran']);
+                $isPengantaranPast   = in_array($statusVal, ['Diterima']);
                 $isTunda   = $statusVal === 'Penundaan Pengiriman';
 
-                // Logika Warna: Ongoing = Hijau, Lewat = Abu-abu (Termasuk kalau final, abu-abu semua)
+                // Titik 4: Final (Murni Diterima)
+                $isFinal   = $statusVal === 'Diterima';
+                $isSelesai = $statusVal === 'Diterima';
+
+                // Logika Warna
                 $s1_color = $isDiprosesActive ? 'bg-green-500' : ($isDiprosesPast ? 'bg-gray-400' : 'bg-gray-200');
                 $s2_color = $isPerjalananActive ? 'bg-green-500' : ($isPerjalananPast ? 'bg-gray-400' : 'bg-gray-200');
-                $s3_color = $isPengantaranActive ? 'bg-green-500' : ($isPengantaranPast ? 'bg-gray-400' : 'bg-gray-200');
-                $s4_color = $isFinal ? 'bg-gray-400' : 'bg-gray-200';
+                $s3_color = $isTunda ? 'bg-orange-500' : ($isPengantaranActive ? 'bg-green-500' : ($isPengantaranPast ? 'bg-gray-400' : 'bg-gray-200'));
+                $s4_color = $isFinal ? 'bg-green-500' : 'bg-gray-200'; // Final sekarang warna hijau juga
 
                 // Teks Status Utama
                 $displayStatus = match($statusVal) {
                     'Diproses', 'Menunggu Jadwal' => 'Sedang Diproses di Gudang',
-                    'Dalam Perjalanan' => 'Dalam Perjalanan Antar Kota',
+                    'Dalam Perjalanan' => 'Dalam Perjalanan',
                     'Tiba di Tujuan' => 'Tiba di Kota Tujuan',
                     'Dalam Pengantaran' => 'Sedang Dalam Pengantaran Kurir',
                     'Diterima' => 'Paket Telah Diterima',
-                    'Gagal Dikirim' => 'Pengiriman Gagal',
                     'Penundaan Pengiriman' => 'Pengiriman Ditunda',
                     default => $statusVal
                 };
@@ -118,13 +115,9 @@
 
                     <div class="mt-5 flex items-start gap-3">
                         @if($isFinal)
-                            @if($isSelesai)
-                                <i data-lucide="check-circle-2" class="w-8 h-8 text-gray-400"></i>
-                            @elseif($isGagal)
-                                <i data-lucide="x-circle" class="w-8 h-8 text-red-500"></i>
-                            @elseif($isTunda)
-                                <i data-lucide="clock" class="w-8 h-8 text-orange-500"></i>
-                            @endif
+                            <i data-lucide="check-circle-2" class="w-8 h-8 text-green-500"></i>
+                        @elseif($isTunda)
+                            <i data-lucide="clock" class="w-8 h-8 text-orange-500"></i>
                         @else
                             <i data-lucide="truck" class="w-8 h-8 text-green-500"></i>
                         @endif
@@ -132,10 +125,10 @@
                         <div>
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Status Saat Ini</p>
                             <h3 class="text-xl font-bold
-                                {{ $isFinal ? ($isSelesai ? 'text-gray-800' : ($isGagal ? 'text-red-700' : 'text-orange-600')) : 'text-green-600' }}">
+                                {{ $isFinal ? 'text-green-600' : ($isTunda ? 'text-orange-600' : 'text-green-600') }}">
                                 {{ strtoupper($displayStatus) }}
                             </h3>
-                            @if($isFinal)
+                            @if($isFinal || $isTunda)
                                 <p class="text-sm font-bold text-gray-500 mt-1">
                                     Update Terakhir: {{ $shipment->updated_at->format('d F Y - H:i') }} WIB
                                 </p>
@@ -205,18 +198,20 @@
 
                         <div class="relative pl-6">
                             <span class="absolute -left-[11px] top-1 w-5 h-5 rounded-full {{ $s3_color }} flex items-center justify-center ring-4 ring-white transition-colors">
-                                @if($isPengantaranActive || $isPengantaranPast)
-                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                                @if($isPengantaranActive || $isPengantaranPast || $isTunda)
+                                    <i data-lucide="{{ $isTunda ? 'clock' : 'check' }}" class="w-3 h-3 text-white"></i>
                                 @else
                                     <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
                                 @endif
                             </span>
-                            <h5 class="text-sm font-bold {{ $isPengantaranActive ? 'text-green-600' : ($isPengantaranPast ? 'text-gray-600' : 'text-gray-400') }}">Sedang Dalam Pengantaran</h5>
-                            <p class="text-xs {{ $isPengantaranActive ? 'text-green-500' : 'text-gray-500' }} mt-1">
-                                Kurir sedang menuju ke alamat penerima.
+                            <h5 class="text-sm font-bold {{ $isTunda ? 'text-orange-600' : ($isPengantaranActive ? 'text-green-600' : ($isPengantaranPast ? 'text-gray-600' : 'text-gray-400')) }}">
+                                {{ $isTunda ? 'Pengiriman Ditunda' : 'Sedang Dalam Pengantaran' }}
+                            </h5>
+                            <p class="text-xs {{ $isTunda ? 'text-orange-500' : ($isPengantaranActive ? 'text-green-500' : 'text-gray-500') }} mt-1">
+                                {{ $isTunda ? 'Jadwal pengantaran diulang karena kendala (penerima tidak di tempat/cuaca).' : 'Kurir sedang menuju ke alamat penerima.' }}
                             </p>
 
-                            @if(($isPengantaranActive || $isPengantaranPast) && optional($shipment->manifest)->courier)
+                            @if(($isPengantaranActive || $isPengantaranPast || $isTunda) && optional($shipment->manifest)->courier)
                                 <div class="mt-3 bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-3">
                                     <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm">
                                         <i data-lucide="user" class="w-5 h-5"></i>
@@ -232,33 +227,19 @@
                                     </div>
                                 </div>
                             @endif
-
-                            @if($isPengantaranActive)
-                                <p class="text-[11px] font-bold text-green-600 mt-2">
-                                    {{ $shipment->updated_at->format('d M Y, H:i') }} WIB
-                                </p>
-                            @endif
                         </div>
 
                         <div class="relative pl-6">
                             <span class="absolute -left-[11px] top-1 w-5 h-5 rounded-full {{ $s4_color }} flex items-center justify-center ring-4 ring-white transition-colors">
                                 @if($isFinal)
-                                    <i data-lucide="{{ $isSelesai ? 'check' : ($isGagal ? 'x' : 'clock') }}" class="w-3 h-3 text-white"></i>
+                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
                                 @else
                                     <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
                                 @endif
                             </span>
 
-                            <h5 class="text-sm font-bold {{ $isFinal ? 'text-gray-900' : 'text-gray-400' }}">
-                                @if($isSelesai)
-                                    Paket Telah Diterima
-                                @elseif($isGagal)
-                                    Pengiriman Gagal
-                                @elseif($isTunda)
-                                    Pengiriman Ditunda
-                                @else
-                                    Menunggu Pengantaran Selesai
-                                @endif
+                            <h5 class="text-sm font-bold {{ $isFinal ? 'text-green-600' : 'text-gray-400' }}">
+                                Paket Telah Diterima
                             </h5>
 
                             @if($isSelesai && optional($shipment->proofOfDelivery)->photo_path)
@@ -274,13 +255,7 @@
                                 </div>
                             @else
                                 <p class="text-xs {{ $isFinal ? 'text-gray-500' : 'text-gray-400' }} mt-1">
-                                    @if($isGagal)
-                                        Paket tidak dapat diserahkan (Alamat tidak valid / penerima tidak ada).
-                                    @elseif($isTunda)
-                                        Jadwal pengantaran dijadwalkan ulang karena kendala cuaca/operasional.
-                                    @else
-                                        Paket belum sampai di tangan penerima.
-                                    @endif
+                                    Paket belum sampai di tangan penerima.
                                 </p>
                             @endif
 
