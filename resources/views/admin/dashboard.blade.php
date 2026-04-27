@@ -204,7 +204,6 @@
                                             'Dalam Perjalanan', 'Tiba di Tujuan' => 'bg-purple-50 text-purple-700 border-purple-200',
                                             'Dalam Pengantaran' => 'bg-blue-50 text-blue-700 border-blue-200',
                                             'Diterima', 'Selesai' => 'bg-green-50 text-green-700 border-green-200',
-                                            'Gagal Dikirim' => 'bg-red-50 text-red-700 border-red-200',
                                             'Penundaan Pengiriman' => 'bg-orange-50 text-orange-700 border-orange-200',
                                             default => 'bg-gray-100 text-gray-600 border-gray-200'
                                         };

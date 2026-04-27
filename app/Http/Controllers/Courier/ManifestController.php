@@ -13,7 +13,7 @@ class ManifestController extends Controller
     {
         $unfinished = $manifest->shipments->filter(function ($shipment) {
             $status = $shipment->current_status->value ?? $shipment->current_status;
-            return !in_array($status, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
+            return !in_array($status, ['Diterima','Penundaan Pengiriman']);
         })->count();
 
         if ($unfinished > 0) {

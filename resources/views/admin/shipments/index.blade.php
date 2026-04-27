@@ -31,7 +31,6 @@
                             <option value="Tiba di Tujuan" {{ request('status') == 'Tiba di Tujuan' ? 'selected' : '' }}>📍 Tiba di Tujuan</option>
                             <option value="Dalam Pengantaran" {{ request('status') == 'Dalam Pengantaran' ? 'selected' : '' }}>🛵 Dalam Pengantaran</option>
                             <option value="Diterima" {{ request('status') == 'Diterima' ? 'selected' : '' }}>✅ Paket Diterima</option>
-                            <option value="Gagal Dikirim" {{ request('status') == 'Gagal Dikirim' ? 'selected' : '' }}>❌ Gagal Dikirim</option>
                             <option value="Penundaan Pengiriman" {{ request('status') == 'Penundaan Pengiriman' ? 'selected' : '' }}>⏸️ Ditunda</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">

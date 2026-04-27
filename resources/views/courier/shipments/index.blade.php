@@ -24,14 +24,14 @@
         </div>
     @endif
 
-    @if($activeManifest)    
+    @if($activeManifest)
         @php
             $totalPaket = $activeManifest->shipments->count();
 
             // Progress Bar hanya dihitung jika sudah di titik akhir
             $paketSelesai = $activeManifest->shipments->filter(function($shipment) {
                 $status = $shipment->current_status->value ?? $shipment->current_status;
-                return in_array($status, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
+                return in_array($status, ['Diterima', 'Penundaan Pengiriman']);
             })->count();
 
             $sisaPaket = $totalPaket - $paketSelesai;
@@ -59,12 +59,11 @@
             @foreach($activeManifest->shipments as $shipment)
                 @php
                     $statusAsli = $shipment->current_status->value ?? $shipment->current_status;
-                    $isSelesai = in_array($statusAsli, ['Diterima', 'Gagal Dikirim', 'Penundaan Pengiriman']);
+                    $isSelesai = in_array($statusAsli, ['Diterima', 'Penundaan Pengiriman']);
 
                     // Warna badge disesuaikan dengan Enum terbaru
                     $statusColor = match($statusAsli) {
                         'Diterima' => 'bg-green-50 text-green-700 border-green-200',
-                        'Gagal Dikirim' => 'bg-red-50 text-red-700 border-red-200',
                         'Penundaan Pengiriman' => 'bg-orange-50 text-orange-700 border-orange-200',
                         'Dalam Pengantaran' => 'bg-blue-50 text-blue-700 border-blue-200',
                         'Tiba di Tujuan' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
@@ -138,7 +137,6 @@
                                         @endif
                                         <option value="Dalam Pengantaran">🛵 OTW ke Rumah (Dalam Pengantaran)</option>
                                         <option value="Diterima">✅ Paket Diterima Customer</option>
-                                        <option value="Gagal Dikirim">❌ Gagal Dikirim</option>
                                         <option value="Penundaan Pengiriman">⏸️ Ditunda / Reschedule</option>
                                     </select>
                                 </div>
@@ -224,7 +222,7 @@
         <div class="mt-8 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] text-center relative overflow-hidden">
             <div class="relative z-10">
                 <h3 class="text-lg font-bold text-gray-900 mb-2">Tugas Selesai?</h3>
-                <p class="text-sm text-gray-500 mb-6 max-w-md mx-auto">Pastikan semua paket sudah di-update statusnya menjadi Diterima, Gagal Dikirim, atau Penundaan Pengiriman sebelum menutup manifest hari ini.</p>
+                <p class="text-sm text-gray-500 mb-6 max-w-md mx-auto">Pastikan semua paket sudah di-update statusnya menjadi Diterima ,atau Penundaan Pengiriman sebelum menutup manifest hari ini.</p>
 
                 <form action="{{ route('courier.manifests.complete', $activeManifest->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menyelesaikan tugas hari ini? Status armada akan kembali tersedia.');">
                     @csrf
