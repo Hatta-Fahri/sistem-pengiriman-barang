@@ -92,14 +92,3 @@
         </div>
     </a>
 @endif
-
-<div class="mt-8 px-2">
-    <form action="{{ route('logout') }}" method="POST">
-        @csrf
-        <button type="submit"
-            class="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all font-medium group">
-            <i data-lucide="log-out" class="w-[18px] h-[18px] group-hover:-translate-x-1 transition-transform"></i>
-            <span class="text-[14px]">Keluar</span>
-        </button>
-    </form>
-</div>

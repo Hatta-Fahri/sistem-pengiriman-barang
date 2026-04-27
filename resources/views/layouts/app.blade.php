@@ -20,7 +20,7 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #bfdbfe; } /* Warna biru saat di-scroll */
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #bfdbfe; }
     </style>
 </head>
 
@@ -34,15 +34,8 @@
             <div class="h-full flex flex-col">
 
                 <div class="px-6 py-6 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="bg-blue-800 p-1.5 rounded-lg flex items-center justify-center shadow-sm">
-                            <i data-lucide="chevrons-right" class="w-5 h-5 text-red-500"></i>
-                        </div>
-                        <div class="flex flex-col -gap-1">
-                            <span class="font-extrabold text-[22px] tracking-tight text-blue-900 italic leading-none">KEN</span>
-                            <span class="text-[10px] font-bold text-red-600 tracking-widest uppercase mt-0.5">Logistics</span>
-                        </div>
-                    </div>
+                    <img src="{{ asset('icon.svg') }}" alt="KEN Logistics" class="h-14 w-auto object-contain pointer-events-none">
+
                     <button @click="sidebarOpen = false" class="lg:hidden text-gray-400 hover:text-red-500 transition-colors">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
@@ -52,17 +45,29 @@
                     @include('layouts.partials.sidebar-menu')
                 </nav>
 
-                <div class="p-4 border-t border-gray-100">
-                    <div class="flex items-center gap-3 px-2 py-2">
-                        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-sm font-bold border border-blue-100">
+                <div class="px-4 py-3">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 bg-red-50 text-red-600 rounded-xl transition-all font-bold group hover:bg-red-100">
+                            <i data-lucide="log-out" class="w-[18px] h-[18px] group-hover:-translate-x-1 transition-transform"></i>
+                            <span class="text-[14px]">Keluar</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="p-4 border-t border-gray-100 bg-gray-50/50">
+                    <div class="flex items-center gap-3 px-2 py-1">
+                        <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold border border-blue-200">
                             {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-blue-950 truncate">{{ Auth::user()->name ?? 'Pengguna' }}</p>
-                            <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role ?? 'Role' }}</p>
+                            <p class="text-xs font-semibold text-gray-500 capitalize">{{ Auth::user()->role ?? 'Role' }}</p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </aside>
 
