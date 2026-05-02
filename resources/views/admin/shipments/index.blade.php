@@ -101,22 +101,29 @@
                                     <div class="font-medium text-gray-900">{{ $resi->receiver_name }}</div>
                                     <div class="text-xs text-gray-500">{{ $resi->weight }} Kg | {{ $resi->jumlah_koli }} Koli</div>
                                 </td>
+
+                                <!-- 👇 PERUBAHAN WARNA STATUS DI TABEL 👇 -->
                                 <td class="px-6 py-4">
                                     @php
-                                        // Variabel penanda apakah resi masih menunggu jadwal
-                                        $isPending = ($resi->current_status === App\Enums\ShipmentStatus::DIPROSES || $resi->current_status?->value === 'Diproses');
+                                        $statusStr = $resi->current_status->value ?? $resi->current_status;
+
+                                        $badgeColor = match($statusStr) {
+                                            'Diproses' => 'bg-orange-100 text-orange-700 border-orange-200',
+                                            'Penundaan Pengiriman', 'Gagal Dikirim' => 'bg-red-100 text-red-700 border-red-200',
+                                            'Diterima', 'Selesai' => 'bg-green-100 text-green-700 border-green-200',
+                                            'Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran' => 'bg-blue-100 text-blue-700 border-blue-200',
+                                            default => 'bg-gray-100 text-gray-700 border-gray-200'
+                                        };
+
+                                        $displayText = $statusStr === 'Diproses' ? 'Menunggu Jadwal' : $statusStr;
                                     @endphp
 
-                                    @if ($isPending)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
-                                            Menunggu Jadwal
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                                            {{ $resi->current_status->value ?? $resi->current_status }}
-                                        </span>
-                                    @endif
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border {{ $badgeColor }}">
+                                        {{ $displayText }}
+                                    </span>
                                 </td>
+                                <!-- 👆 AKHIR PERUBAHAN 👆 -->
+
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end items-center gap-2">
                                         <button @click="detailModalOpen = {{ $resi->id }}"
@@ -124,6 +131,10 @@
                                             title="Lihat Detail Lengkap">
                                             <i data-lucide="eye" class="w-4 h-4"></i>
                                         </button>
+
+                                        @php
+                                            $isPending = ($resi->current_status === App\Enums\ShipmentStatus::DIPROSES || $resi->current_status?->value === 'Diproses');
+                                        @endphp
 
                                         @if ($isPending && $resi->manifest_id === null)
                                             <a href="{{ route('shipments.edit', $resi->id) }}"
@@ -195,8 +206,16 @@
                                 <i data-lucide="box" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <h3 class="font-black text-gray-900 text-lg leading-tight">{{ $resi->tracking_number }}</h3>
-                                <p class="text-xs text-gray-500 font-medium">Data Lengkap Pengiriman</p>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="font-black text-gray-900 text-lg leading-tight">{{ $resi->tracking_number }}</h3>
+                                    <a href="{{ route('tracking.index', ['resi' => $resi->tracking_number]) }}" target="_blank"
+                                       class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg transition-all shadow-sm border border-blue-100 hover:border-transparent"
+                                       title="Lihat di Halaman Lacak Publik">
+                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider">Buka Tracking</span>
+                                    </a>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium mt-0.5">Data Lengkap Pengiriman</p>
                             </div>
                         </div>
                         <button @click="detailModalOpen = null" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
@@ -262,10 +281,24 @@
                                                 <span class="text-gray-500 flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Tgl Jalan</span>
                                                 <span class="font-semibold text-gray-700">{{ $resi->manifest->departed_at ? \Carbon\Carbon::parse($resi->manifest->departed_at)->format('d M Y, H:i') : '-' }}</span>
                                             </li>
+
+                                            <!-- 👇 PERUBAHAN WARNA STATUS DI DALAM MODAL 👇 -->
                                             <li class="flex justify-between">
                                                 <span class="text-gray-500 flex items-center gap-1"><i data-lucide="activity" class="w-3.5 h-3.5"></i> Status</span>
-                                                <span class="font-bold text-blue-600">{{ $resi->current_status->value ?? $resi->current_status }}</span>
+                                                @php
+                                                    $modalStatusStr = $resi->current_status->value ?? $resi->current_status;
+                                                    $modalTextColor = match($modalStatusStr) {
+                                                        'Diproses' => 'text-orange-600',
+                                                        'Penundaan Pengiriman', 'Gagal Dikirim' => 'text-red-600',
+                                                        'Diterima', 'Selesai' => 'text-green-600',
+                                                        'Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran' => 'text-blue-600',
+                                                        default => 'text-gray-600'
+                                                    };
+                                                @endphp
+                                                <span class="font-bold {{ $modalTextColor }}">{{ $modalStatusStr === 'Diproses' ? 'Menunggu Jadwal' : $modalStatusStr }}</span>
                                             </li>
+                                            <!-- 👆 AKHIR PERUBAHAN 👆 -->
+
                                         </ul>
                                     @else
                                         <div class="h-full flex flex-col items-center justify-center text-center py-4">

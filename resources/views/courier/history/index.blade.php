@@ -30,6 +30,7 @@
             @php
                 $statusVal = $resi->current_status->value ?? $resi->current_status;
                 $isSukses = in_array($statusVal, ['Diterima', 'Selesai']);
+                $isGagal = $statusVal === 'Gagal Dikirim';
 
                 $bgColor = $isSukses ? 'bg-green-50' : ($isGagal ? 'bg-red-50' : 'bg-orange-50');
                 $textColor = $isSukses ? 'text-green-700' : ($isGagal ? 'text-red-700' : 'text-orange-700');
