@@ -53,24 +53,24 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION (CENTERED DENGAN ANIMASI BACKGROUND KIRI KANAN) -->
+    <!-- HERO SECTION -->
     <div class="relative bg-white overflow-hidden border-b border-gray-100 min-h-[500px] flex items-center justify-center">
         <!-- Background Ornaments Pattern -->
         <div class="absolute inset-0 bg-grid-pattern opacity-30 z-0 pointer-events-none"></div>
         <div class="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[600px] h-[600px] bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none z-0"></div>
         <div class="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[400px] h-[400px] bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none z-0"></div>
 
-        <!-- 👇 Lottie Background Kiri (Animation 2) 👇 -->
+        <!-- Lottie Background Kiri -->
         <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/4 md:-translate-x-1/6 w-[300px] md:w-[450px] opacity-25 md:opacity-40 pointer-events-none z-0">
             <lottie-player src="{{ asset('animation2.json') }}" background="transparent" speed="1" style="width: 100%; height: auto;" loop autoplay></lottie-player>
         </div>
 
-        <!-- 👇 Lottie Background Kanan (Animation 3) 👇 -->
+        <!-- Lottie Background Kanan -->
         <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/4 md:translate-x-1/6 w-[300px] md:w-[450px] opacity-25 md:opacity-40 pointer-events-none z-0">
             <lottie-player src="{{ asset('animation3.json') }}" background="transparent" speed="1" style="width: 100%; height: auto;" loop autoplay></lottie-player>
         </div>
 
-        <!-- Konten Pencarian Utama (Tengah) -->
+        <!-- Konten Pencarian Utama -->
         <div class="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-24 relative z-10 text-center w-full">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100 text-blue-700 text-xs font-bold tracking-wider mb-6 shadow-sm mx-auto">
                 <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
@@ -87,7 +87,6 @@
             </p>
 
             <form action="{{ route('tracking.index') }}" method="GET" class="max-w-xl mx-auto relative group">
-                <!-- Efek Glow di belakang form -->
                 <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500 z-0"></div>
 
                 <div class="relative flex flex-col sm:flex-row items-center glass-panel p-2 rounded-2xl shadow-xl border border-white/60 focus-within:ring-2 focus-within:ring-blue-400 transition-all gap-2 z-10 bg-white/80">
@@ -104,7 +103,7 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT AREA (HASIL TRACKING) -->
+    <!-- MAIN CONTENT AREA -->
     <div class="flex-grow max-w-3xl mx-auto w-full px-4 -mt-10 relative z-20 pb-20">
 
         <!-- LOGIKA ERROR -->
@@ -119,35 +118,14 @@
             </div>
         @endif
 
-        <!-- LOGIKA SUCCESS / HASIL TRACKING -->
+        <!-- LOGIKA SUCCESS -->
         @if(isset($shipment))
             @php
+                // Teks Utama Header Berdasarkan Current Status
                 $statusVal = $shipment->current_status->value ?? $shipment->current_status;
+                $isFinal   = in_array($statusVal, ['Diterima', 'Selesai']);
+                $isTunda   = in_array($statusVal, ['Penundaan Pengiriman', 'Gagal Dikirim']);
 
-                // Titik 1: Resi Dibuat
-                $isDiprosesActive = in_array($statusVal, ['Diproses', 'Menunggu Jadwal']);
-                $isDiprosesPast   = in_array($statusVal, ['Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran', 'Penundaan Pengiriman', 'Diterima']);
-
-                // Titik 2: Dalam Perjalanan
-                $isPerjalananActive = in_array($statusVal, ['Dalam Perjalanan', 'Tiba di Tujuan']);
-                $isPerjalananPast   = in_array($statusVal, ['Dalam Pengantaran', 'Penundaan Pengiriman', 'Diterima']);
-
-                // Titik 3: Dalam Pengantaran & Ditunda (Ditunda ditaruh di sini agar Step 4 tidak nyala)
-                $isPengantaranActive = in_array($statusVal, ['Dalam Pengantaran']);
-                $isPengantaranPast   = in_array($statusVal, ['Diterima']);
-                $isTunda   = $statusVal === 'Penundaan Pengiriman';
-
-                // Titik 4: Final (Murni Diterima)
-                $isFinal   = $statusVal === 'Diterima';
-                $isSelesai = $statusVal === 'Diterima';
-
-                // Logika Warna
-                $s1_color = $isDiprosesActive ? 'bg-green-500 shadow-green-500/30' : ($isDiprosesPast ? 'bg-gray-400' : 'bg-gray-200');
-                $s2_color = $isPerjalananActive ? 'bg-green-500 shadow-green-500/30' : ($isPerjalananPast ? 'bg-gray-400' : 'bg-gray-200');
-                $s3_color = $isTunda ? 'bg-orange-500 shadow-orange-500/30' : ($isPengantaranActive ? 'bg-green-500 shadow-green-500/30' : ($isPengantaranPast ? 'bg-gray-400' : 'bg-gray-200'));
-                $s4_color = $isFinal ? 'bg-green-500 shadow-green-500/30' : 'bg-gray-200';
-
-                // Teks Status Utama
                 $displayStatus = match($statusVal) {
                     'Diproses', 'Menunggu Jadwal' => 'Sedang Diproses di Gudang',
                     'Dalam Perjalanan' => 'Dalam Perjalanan',
@@ -187,19 +165,16 @@
                                 {{ $isFinal ? 'text-green-600' : ($isTunda ? 'text-orange-600' : 'text-blue-700') }}">
                                 {{ strtoupper($displayStatus) }}
                             </h3>
-                            @if($isFinal || $isTunda)
-                                <p class="text-xs font-bold text-gray-500 mt-1 flex items-center gap-1.5">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                                    {{ $shipment->updated_at->format('d F Y - H:i') }} WIB
-                                </p>
-                            @endif
+                            <p class="text-xs font-bold text-gray-500 mt-1 flex items-center gap-1.5">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                {{ $shipment->updated_at->format('d F Y - H:i') }} WIB
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Info Pengirim & Penerima -->
                 <div class="px-6 py-6 md:px-8 bg-white grid grid-cols-2 gap-6 relative">
-                    <!-- Garis pembatas tengah -->
                     <div class="absolute left-1/2 top-8 bottom-8 w-px bg-gray-100 hidden sm:block"></div>
 
                     <div>
@@ -218,7 +193,7 @@
                     </div>
                 </div>
 
-                <!-- Timeline Perjalanan -->
+                <!-- Timeline Perjalanan (DINAMIS DARI TRACKING LOGS) -->
                 <div class="p-6 md:p-8 bg-gray-50 border-t border-gray-100 rounded-b-3xl">
                     <h4 class="text-xs font-black text-gray-400 mb-8 uppercase tracking-widest flex items-center gap-2">
                         <i data-lucide="list-tree" class="w-4 h-4"></i> Detail Perjalanan
@@ -226,110 +201,101 @@
 
                     <div class="relative border-l-2 border-gray-200 ml-4 space-y-8">
 
-                        <div class="relative pl-8">
-                            <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full {{ $s1_color }} flex items-center justify-center ring-4 ring-gray-50 transition-colors shadow-sm">
-                                @if($isDiprosesActive || $isDiprosesPast)
-                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
-                                @else
-                                    <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
-                                @endif
-                            </span>
-                            <h5 class="text-sm font-bold {{ $isDiprosesActive ? 'text-green-600' : ($isDiprosesPast ? 'text-gray-700' : 'text-gray-400') }}">Resi Dibuat & Barang Diterima</h5>
-                            <p class="text-xs {{ $isDiprosesActive ? 'text-green-500' : 'text-gray-500' }} mt-1">Gudang Pusat {{ $shipment->origin_city }}</p>
-                            <p class="text-[11px] font-bold {{ $isDiprosesActive ? 'text-green-600' : 'text-gray-400' }} mt-1.5">
-                                {{ $shipment->created_at->format('d M Y, H:i') }} WIB
-                            </p>
-                        </div>
+                        @forelse($shipment->trackings as $log)
+                            @php
+                                // Ambil nilai string murni jika berbentuk Enum
+                                $logStatus = $log->status->value ?? $log->status;
+                                $isOngoing = $loop->last;
 
-                        <div class="relative pl-8">
-                            <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full {{ $s2_color }} flex items-center justify-center ring-4 ring-gray-50 transition-colors shadow-sm">
-                                @if($isPerjalananActive || $isPerjalananPast)
-                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
-                                @else
-                                    <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
-                                @endif
-                            </span>
-                            <h5 class="text-sm font-bold {{ $isPerjalananActive ? 'text-green-600' : ($isPerjalananPast ? 'text-gray-700' : 'text-gray-400') }}">Dalam Perjalanan</h5>
-                            <p class="text-xs {{ $isPerjalananActive ? 'text-green-500' : 'text-gray-500' }} mt-1">
-                                Paket sedang dibawa menuju {{ $shipment->destination_city }}
-                            </p>
-                            @if($isPerjalananActive || $isPerjalananPast)
-                                @php
-                                    $waktuJalan = optional($shipment->manifest)->departed_at ?? optional($shipment->manifest)->created_at;
-                                @endphp
-                                @if($waktuJalan)
-                                    <p class="text-[11px] font-bold {{ $isPerjalananActive ? 'text-green-600' : 'text-gray-400' }} mt-1.5">
-                                        {{ \Carbon\Carbon::parse($waktuJalan)->format('d M Y, H:i') }} WIB
+                                // Penentuan warna titik (Hijau jika status berlangsung/terakhir, sisanya abu-abu)
+                                $dotColor = $isOngoing ? 'bg-green-500 shadow-green-500/30' : 'bg-gray-400';
+                                $textColor = $isOngoing ? 'text-green-600' : 'text-gray-500';
+
+                                // Penentuan Icon
+                                $icon = match($logStatus) {
+                                    'Penundaan Pengiriman', 'Gagal Dikirim' => 'clock',
+                                    'Diterima', 'Selesai' => 'check',
+                                    'Dalam Pengantaran' => 'truck',
+                                    'Dalam Perjalanan', 'Tiba di Tujuan' => 'arrow-right',
+                                    default => 'check'
+                                };
+                            @endphp
+
+                            <div class="relative pl-8">
+                                <!-- Titik Timeline -->
+                                <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full {{ $dotColor }} flex items-center justify-center ring-4 ring-gray-50 transition-colors shadow-sm">
+                                    <i data-lucide="{{ $icon }}" class="w-3 h-3 text-white"></i>
+                                </span>
+
+                                <!-- Judul Status -->
+                                <h5 class="text-sm font-bold {{ $textColor }}">
+                                    {{ $logStatus === 'Diproses' ? 'Resi Dibuat & Barang Diterima' : $logStatus }}
+                                </h5>
+
+                                <!-- Lokasi -->
+                                @if($log->location)
+                                    <p class="text-xs font-medium text-gray-500 mt-1">
+                                        <i data-lucide="map-pin" class="w-3 h-3 inline pb-0.5"></i> {{ $log->location }}
                                     </p>
                                 @endif
-                            @endif
-                        </div>
 
-                        <div class="relative pl-8">
-                            <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full {{ $s3_color }} flex items-center justify-center ring-4 ring-gray-50 transition-colors shadow-sm">
-                                @if($isPengantaranActive || $isPengantaranPast || $isTunda)
-                                    <i data-lucide="{{ $isTunda ? 'clock' : 'check' }}" class="w-3 h-3 text-white"></i>
-                                @else
-                                    <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
-                                @endif
-                            </span>
-                            <h5 class="text-sm font-bold {{ $isTunda ? 'text-orange-600' : ($isPengantaranActive ? 'text-green-600' : ($isPengantaranPast ? 'text-gray-700' : 'text-gray-400')) }}">
-                                {{ $isTunda ? 'Pengiriman Ditunda' : 'Sedang Dalam Pengantaran' }}
-                            </h5>
-                            <p class="text-xs {{ $isTunda ? 'text-orange-500' : ($isPengantaranActive ? 'text-green-500' : 'text-gray-500') }} mt-1">
-                                {{ $isTunda ? 'Jadwal pengantaran diulang karena kendala (penerima tidak di tempat/cuaca).' : 'Kurir sedang menuju ke alamat penerima.' }}
-                            </p>
-
-                            @if(($isPengantaranActive || $isPengantaranPast || $isTunda) && optional($shipment->manifest)->courier)
-                                <div class="mt-3 bg-white border border-gray-100 rounded-xl p-3 flex items-center gap-3 shadow-sm">
-                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                                        <i data-lucide="user" class="w-5 h-5"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-gray-500 uppercase">Petugas Kurir</p>
-                                        <p class="text-sm font-bold text-gray-900">{{ $shipment->manifest->courier->name }}</p>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="relative pl-8">
-                            <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full {{ $s4_color }} flex items-center justify-center ring-4 ring-gray-50 transition-colors shadow-sm">
-                                @if($isFinal)
-                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
-                                @else
-                                    <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
-                                @endif
-                            </span>
-
-                            <h5 class="text-sm font-bold {{ $isFinal ? 'text-green-600' : 'text-gray-400' }}">
-                                Paket Telah Diterima
-                            </h5>
-
-                            @if($isSelesai && optional($shipment->proofOfDelivery)->photo_path)
-                                <div class="mt-4 bg-white border border-gray-100 shadow-md rounded-2xl p-4 relative overflow-hidden">
-                                    <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-                                    <p class="text-sm text-gray-800 font-medium mb-3 pl-2">
-                                        Diserahkan kepada: <span class="font-black text-gray-900">{{ $shipment->proofOfDelivery->received_by_name }}</span>
+                                <!-- Catatan/Note -->
+                                @if($log->notes)
+                                    <p class="text-xs {{ $logStatus === 'Penundaan Pengiriman' ? 'text-orange-500' : 'text-gray-500' }} mt-1">
+                                        {{ $log->notes }}
                                     </p>
+                                @endif
 
-                                    <div class="rounded-xl overflow-hidden bg-gray-100 max-w-sm border border-gray-200">
-                                        <img src="{{ asset('storage/' . $shipment->proofOfDelivery->photo_path) }}" alt="Bukti Penerimaan" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-500">
+                                <p class="text-[11px] font-bold text-gray-400 mt-1.5">
+                                    {{ $log->created_at->format('d M Y, H:i') }} WIB
+                                </p>
+
+                                <!-- Kotak Info Kurir (Muncul pas Dalam Pengantaran / Penundaan) -->
+                                @if(in_array($logStatus, ['Dalam Pengantaran', 'Penundaan Pengiriman']) && optional($log->recordedBy)->role === 'kurir')
+                                    <div class="mt-3 bg-white border border-gray-100 rounded-xl p-3 inline-flex items-center gap-3.5 shadow-sm pr-8">
+                                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                                            <i data-lucide="user" class="w-5 h-5"></i>
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Petugas Kurir</p>
+                                            <p class="text-sm font-black text-gray-900 leading-none mb-1.5">{{ $log->recordedBy->name }}</p>
+                                            @if($log->recordedBy->phone)
+                                                <a href="tel:{{ $log->recordedBy->phone }}" class="inline-flex w-fit px-2 py-1 bg-blue-50 rounded-md text-[11px] font-bold text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-colors items-center gap-1.5">
+                                                    <i data-lucide="phone" class="w-3 h-3"></i> {{ $log->recordedBy->phone }}
+                                                </a>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <p class="text-[10px] text-gray-400 mt-2 italic font-medium pl-2"><i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti foto dari kurir</p>
-                                </div>
-                            @else
-                                <p class="text-xs {{ $isFinal ? 'text-gray-500' : 'text-gray-400' }} mt-1">
-                                    Paket belum sampai di tangan penerima.
-                                </p>
-                            @endif
+                                @endif
 
-                            @if($isFinal)
-                                <p class="text-[11px] font-bold text-gray-500 mt-2.5">
-                                    {{ $shipment->updated_at->format('d M Y, H:i') }} WIB
-                                </p>
-                            @endif
-                        </div>
+                                <!-- Kotak POD (Muncul HANYA di status Diterima) -->
+                                @if(in_array($logStatus, ['Diterima', 'Selesai']) && optional($shipment->proofOfDelivery)->photo_path)
+                                    <div class="mt-4 bg-white border border-gray-100 shadow-md rounded-2xl p-4 relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                                        <p class="text-sm text-gray-800 font-medium mb-3 pl-2">
+                                            Diserahkan kepada: <span class="font-black text-gray-900">{{ $shipment->proofOfDelivery->received_by_name }}</span>
+                                        </p>
+
+                                        <div class="rounded-xl overflow-hidden bg-gray-100 max-w-sm border border-gray-200">
+                                            <img src="{{ asset('storage/' . $shipment->proofOfDelivery->photo_path) }}" alt="Bukti Penerimaan" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-500">
+                                        </div>
+                                        <p class="text-[10px] text-gray-400 mt-2 italic font-medium pl-2">
+                                            <i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti foto dari kurir
+                                        </p>
+                                    </div>
+                                @endif
+
+                            </div>
+                        @empty
+                            <!-- Empty State jika log tracking benar-benar kosong -->
+                            <div class="relative pl-8">
+                                <span class="absolute -left-[13px] top-0.5 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center ring-4 ring-gray-50">
+                                    <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
+                                </span>
+                                <h5 class="text-sm font-bold text-gray-400">Menunggu Update Sistem</h5>
+                                <p class="text-xs text-gray-400 mt-1">Data riwayat pengiriman belum tersedia.</p>
+                            </div>
+                        @endforelse
 
                     </div>
                 </div>
@@ -337,7 +303,7 @@
             </div>
         @endif
 
-        <!-- EMPTY STATE (Hanya tampil saat tidak ada error & belum cari resi) -->
+        <!-- EMPTY STATE PENCARIAN -->
         @if(!isset($shipment) && !isset($error))
             <div class="text-center pt-8 md:pt-16 pb-8">
                 <div class="w-16 h-16 bg-white border border-gray-100 shadow-sm rounded-2xl flex items-center justify-center mx-auto mb-5 text-gray-400">
