@@ -41,8 +41,6 @@
         </div>
 
         <div class="hidden sm:flex items-center gap-4 text-xs font-bold">
-            <a href="#" class="text-gray-500 hover:text-blue-700 transition-colors">Beranda</a>
-            <a href="#" class="text-gray-500 hover:text-blue-700 transition-colors">Layanan</a>
             @auth
                 <a href="{{ url('/dashboard') }}" class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">Dashboard</a>
             @else
@@ -74,7 +72,6 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-24 relative z-10 text-center w-full">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100 text-blue-700 text-xs font-bold tracking-wider mb-6 shadow-sm mx-auto">
                 <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                PELACAKAN PAKET REAL-TIME
             </div>
 
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight leading-[1.1] drop-shadow-sm">
@@ -250,8 +247,8 @@
                                     {{ $log->created_at->format('d M Y, H:i') }} WIB
                                 </p>
 
-                                <!-- Kotak Info Kurir (Muncul pas Dalam Pengantaran / Penundaan) -->
-                                @if(in_array($logStatus, ['Dalam Pengantaran', 'Penundaan Pengiriman']) && optional($log->recordedBy)->role === 'kurir')
+                                <!-- Kotak Info Kurir (Muncul pas Dalam Pengantaran saja) -->
+                                @if($logStatus === 'Dalam Pengantaran' && optional($log->recordedBy)->role === 'kurir')
                                     <div class="mt-3 bg-white border border-gray-100 rounded-xl p-3 inline-flex items-center gap-3.5 shadow-sm pr-8">
                                         <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
                                             <i data-lucide="user" class="w-5 h-5"></i>
@@ -327,8 +324,6 @@
             </div>
 
             <div class="flex items-center justify-center gap-6 text-xs font-bold">
-                <a href="#" class="text-gray-400 hover:text-blue-600 transition-colors">Bantuan</a>
-                <a href="#" class="text-gray-400 hover:text-blue-600 transition-colors">Syarat & Ketentuan</a>
             </div>
         </div>
     </footer>

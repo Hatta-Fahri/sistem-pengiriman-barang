@@ -24,7 +24,7 @@ class Shipment extends Model
         static::created(function ($shipment) {
             $shipment->trackings()->create([
                 'status' => $shipment->current_status->value ?? $shipment->current_status,
-                'notes' => 'Paket telah diterima di fasilitas KEN Logistics',
+                'notes' => 'Gudang Pusat MEDAN',
                 'recorded_by' => Auth::id() ?? 1, // Default ke 1 jika via CLI/Seeder
             ]);
         });
@@ -34,10 +34,10 @@ class Shipment extends Model
             if ($shipment->isDirty('current_status')) {
                 // Ambil nilai string murni dari Enum
                 $statusVal = $shipment->current_status->value ?? $shipment->current_status;
-                
+
                 $notes = match($statusVal) {
-                    'Dalam Perjalanan' => 'Paket sedang diberangkatkan dari fasilitas asal',
-                    'Tiba di Tujuan' => 'Paket telah tiba di fasilitas tujuan',
+                    'Dalam Perjalanan' => 'Paket sedang di bawa menuju kota tujuan',
+                    'Tiba di Tujuan' => 'Paket telah tiba di kota tujuan',
                     'Dalam Pengantaran' => 'Kurir sedang mengantar paket ke alamat penerima',
                     'Penundaan Pengiriman' => 'Pengiriman tertunda atau dijadwalkan ulang',
                     'Gagal Dikirim' => 'Paket gagal dikirim',
