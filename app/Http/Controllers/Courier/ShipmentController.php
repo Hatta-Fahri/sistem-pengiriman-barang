@@ -47,20 +47,13 @@ class ShipmentController extends Controller
                 'delivered_at' => now(),
             ];
 
-            // Proses mengubah gambar Base64 menjadi file JPG fisik
+            // Proses upload Base64 langsung ke Cloudinary
             if ($request->filled('photo_base64')) {
-                $image_parts = explode(";base64,", $request->photo_base64);
-                $image_type_aux = explode("image/", $image_parts[0]);
-                $image_type = $image_type_aux[1] ?? 'jpg';
-                $image_base64 = base64_decode($image_parts[1]);
-
-                // Beri nama file unik: pod_KEN-XXXX_123456.jpg
-                $fileName = 'pod_' . $shipment->tracking_number . '_' . time() . '.' . $image_type;
-                $path = 'pod/' . $fileName;
-
-                // Simpan ke storage/app/public/pod
-                Storage::disk('public')->put($path, $image_base64);
-                $dataPod['photo_path'] = $path;
+                $cloudinary = new \Cloudinary\Cloudinary(env('CLOUDINARY_URL'));
+                $uploadResult = $cloudinary->uploadApi()->upload($request->photo_base64, [
+                    'folder' => 'pod',
+                ]);
+                $dataPod['photo_path'] = $uploadResult['secure_url'];
             }
 
             ProofOfDelivery::updateOrCreate(

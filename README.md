@@ -1,58 +1,88 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📦 KEN Logistics - Sistem Manajemen Pengiriman Barang
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+KEN Logistics adalah sebuah sistem informasi berbasis web untuk mengelola dan melacak pengiriman barang (paket/kargo) secara *real-time*. Sistem ini memfasilitasi tiga aktor utama: **Admin**, **Kurir**, dan **Pelanggan (Publik)**.
 
-## About Laravel
+## 🌟 Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 1. 🔍 Pelacakan Resi (Public)
+- Pelanggan dapat melacak posisi paket menggunakan Nomor Resi (misal: `KEN-20260417-ABCD`).
+- Menampilkan *timeline* perjalanan paket secara dinamis.
+- Menampilkan estimasi status (Diproses, Dalam Perjalanan, Tiba di Tujuan, Dalam Pengantaran, Diterima, Gagal/Tertunda).
+- Menampilkan foto *Proof of Delivery* (POD) setelah paket berhasil diterima.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 2. 👨‍💻 Panel Admin
+- **Manajemen Resi (Shipment):** Pembuatan resi baru, pencetakan resi (label), dan pengeditan (selama belum dijadwalkan).
+- **Manajemen Manifest:** Pengelompokan resi ke dalam satu jadwal perjalanan (*Manifest*) dan penugasan ke Kurir tertentu.
+- **Laporan & Rekapitulasi:** Cetak laporan pengiriman dan memantau kinerja harian.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 3. 🚚 Panel Kurir
+- **Tugas Harian:** Melihat daftar paket yang harus diantar (*Manifest* aktif).
+- **Update Status:** Kurir dapat memperbarui status paket secara *real-time* dari lapangan.
+- **Upload POD (Proof of Delivery):** Mendukung pengambilan foto secara langsung (Base64/Kamera) sebagai bukti penerimaan.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Teknologi yang Digunakan
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **Framework Backend:** [Laravel](https://laravel.com) (PHP)
+*   **Frontend/Styling:** [Tailwind CSS](https://tailwindcss.com/) & Blade Templating
+*   **Icons & Animations:** [Lucide Icons](https://lucide.dev/) & [LottieFiles](https://lottiefiles.com/)
+*   **Database:** MySQL / SQLite
+*   **Cloud Storage:** [Cloudinary](https://cloudinary.com/) (Untuk penyimpanan foto Proof of Delivery agar server tidak cepat penuh)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🚀 Panduan Instalasi (Untuk Developer Baru)
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Jika Anda melakukan *pull* atau *clone* repositori ini, ikuti langkah-langkah berikut untuk menjalankan aplikasi di lokal:
 
+### 1. *Clone* Repositori
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <url-repo-anda>
+cd sistem-pengiriman-barang
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instalasi Dependensi
+Pastikan [Composer](https://getcomposer.org/) dan [Node.js](https://nodejs.org/) sudah terinstal.
+```bash
+composer install
+npm install
+npm run build
+```
 
-## Contributing
+### 3. Konfigurasi Environment (`.env`)
+Salin file `.env.example` menjadi `.env`.
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**⚠️ PENTING (Cloudinary):**
+Karena sistem ini menggunakan Cloudinary untuk penyimpanan foto POD, pastikan Anda menambahkan kredensial API Cloudinary Anda di file `.env`.
+```env
+CLOUDINARY_URL=cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>
+```
 
-## Code of Conduct
+### 4. Setup Database
+Pastikan pengaturan database di `.env` sudah sesuai (misalnya `DB_CONNECTION=sqlite` atau `mysql`). Jalankan migrasi dan *seeder* (jika ada):
+```bash
+php artisan migrate --seed
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Jalankan Server Lokal
+```bash
+php artisan serve
+```
+Aplikasi bisa diakses melalui browser di `http://localhost:8000`.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 📂 Struktur Penting / Konsep Sistem
 
-## License
+- **`Shipment` (Resi):** Entitas utama barang yang dikirim.
+- **`Manifest` (Surat Jalan):** Wadah yang berisi kumpulan *Shipment* dan ditugaskan ke seorang Kurir.
+- **`ShipmentTracking`:** Catatan (*log*) pergerakan paket. Otomatis bertambah saat status `Shipment` berubah.
+- **`ProofOfDelivery`:** Bukti serah terima barang (nama penerima dan foto Cloudinary).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+*Dibuat untuk mempermudah operasional pengiriman PT. Ken Ekspres Nusantara.*

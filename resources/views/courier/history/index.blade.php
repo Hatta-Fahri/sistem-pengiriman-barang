@@ -103,7 +103,7 @@
                         <div class="p-5">
                             @if($resi->proofOfDelivery->photo_path)
                                 <div class="rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-4">
-                                    <img src="{{ asset('storage/' . $resi->proofOfDelivery->photo_path) }}" alt="Foto POD" class="w-full h-auto max-h-64 object-cover">
+                                    <img src="{{ $resi->proofOfDelivery->photo_url }}" alt="Foto POD" class="w-full h-auto max-h-64 object-cover">
                                 </div>
                             @endif
 

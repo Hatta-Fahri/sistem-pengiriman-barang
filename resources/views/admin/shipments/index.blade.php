@@ -331,8 +331,8 @@
                                     </div>
                                     <div class="flex justify-end">
                                         @if($resi->proofOfDelivery->photo_path)
-                                            <a href="{{ asset('storage/' . $resi->proofOfDelivery->photo_path) }}" target="_blank" class="block w-full sm:w-48 h-32 rounded-lg border-2 border-white shadow-md overflow-hidden hover:scale-105 transition-transform duration-300">
-                                                <img src="{{ asset('storage/' . $resi->proofOfDelivery->photo_path) }}" alt="Foto POD" class="w-full h-full object-cover">
+                                            <a href="{{ $resi->proofOfDelivery->photo_url }}" target="_blank" class="block w-full sm:w-48 h-32 rounded-lg border-2 border-white shadow-md overflow-hidden hover:scale-105 transition-transform duration-300">
+                                                <img src="{{ $resi->proofOfDelivery->photo_url }}" alt="Foto POD" class="w-full h-full object-cover">
                                             </a>
                                         @else
                                             <div class="w-full sm:w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center border border-dashed border-gray-300 text-gray-400 text-xs font-medium">

@@ -119,7 +119,7 @@
                             </td>
                             <td class="py-3 px-2 text-center">
                                 @if($s->proofOfDelivery && $s->proofOfDelivery->photo_path)
-                                    <img src="{{ asset('storage/' . $s->proofOfDelivery->photo_path) }}"
+                                    <img src="{{ $s->proofOfDelivery->photo_url }}"
                                          alt="POD"
                                          class="h-16 w-16 object-cover rounded border border-gray-300 mx-auto">
                                 @else

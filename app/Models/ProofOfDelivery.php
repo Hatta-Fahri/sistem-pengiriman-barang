@@ -22,4 +22,19 @@ class ProofOfDelivery extends Model
     {
         return $this->belongsTo(Shipment::class);
     }
+
+    public function getPhotoUrlAttribute()
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
+
+        // Jika URL diawali dengan http atau https (Cloudinary)
+        if (str_starts_with($this->photo_path, 'http')) {
+            return $this->photo_path;
+        }
+
+        // Jika path lokal
+        return asset('storage/' . $this->photo_path);
+    }
 }

@@ -274,7 +274,7 @@
                                         </p>
 
                                         <div class="rounded-xl overflow-hidden bg-gray-100 max-w-sm border border-gray-200">
-                                            <img src="{{ asset('storage/' . $shipment->proofOfDelivery->photo_path) }}" alt="Bukti Penerimaan" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-500">
+                                            <img src="{{ $shipment->proofOfDelivery->photo_url }}" alt="Bukti Penerimaan" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-500">
                                         </div>
                                         <p class="text-[10px] text-gray-400 mt-2 italic font-medium pl-2">
                                             <i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti foto dari kurir
