@@ -36,8 +36,8 @@ class Shipment extends Model
                 $statusVal = $shipment->current_status->value ?? $shipment->current_status;
 
                 $notes = match($statusVal) {
-                    'Dalam Perjalanan' => 'Paket sedang di bawa menuju kota tujuan',
-                    'Tiba di Tujuan' => 'Paket telah tiba di kota tujuan',
+                    'Dalam Perjalanan' => "Paket sedang dibawa menuju {$shipment->destination_city}",
+                    'Tiba di Tujuan' => "Paket telah tiba di {$shipment->destination_city}",
                     'Dalam Pengantaran' => 'Kurir sedang mengantar paket ke alamat penerima',
                     'Penundaan Pengiriman' => 'Pengiriman tertunda atau dijadwalkan ulang',
                     'Gagal Dikirim' => 'Paket gagal dikirim',
