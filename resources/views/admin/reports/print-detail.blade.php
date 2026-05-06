@@ -54,14 +54,6 @@
     </style>
 </head>
 <body onload="window.print()">
-
-    <!-- Tombol Print (Sembunyi saat diprint) -->
-    <div class="max-w-[210mm] mx-auto flex justify-end mt-6 mb-2 no-print">
-        <button onclick="window.print()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors">
-            Cetak / PDF
-        </button>
-    </div>
-
     <!-- Container Kertas A4 -->
     <div class="paper-container">
 
