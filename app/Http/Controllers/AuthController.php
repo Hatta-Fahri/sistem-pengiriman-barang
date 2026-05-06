@@ -8,30 +8,30 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    // Menampilkan Halaman Form Login
+    // Menampilkan halaman utama untuk masuk (login)
     public function index()
     {
         return view('auth.login');
     }
 
-    // Proses Autentikasi (Sama seperti public function login di API-mu)
+    // Proses verifikasi kredensial pengguna
     public function authenticate(Request $request)
     {
-        // 1. Validasi Input (Kita pakai email, bukan NIK)
+        // 1. Pastikan input email dan password diisi dengan format yang benar
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
-        // 2. Cek User & Password (Auth::attempt sudah mengecek Hash otomatis)
+        // 2. Lakukan pengecekan kecocokan data dengan yang ada di database
         if (Auth::attempt($credentials)) {
 
-            // 3. Buat Session Baru (Pengganti createToken di API)
+            // 3. Buat sesi baru untuk mengamankan status login pengguna
             $request->session()->regenerate();
 
             $user = Auth::user();
 
-            // 4. Redirect berdasarkan Role (Pengganti return JSON)
+            // 4. Arahkan pengguna ke halaman dashboard yang sesuai dengan jabatannya
             if ($user->role === 'admin') {
                 return redirect()->intended('/admin/dashboard');
             }
@@ -41,23 +41,23 @@ class AuthController extends Controller
             }
         }
 
-        // 5. Jika Gagal Login (Pengganti response()->json status error)
+        // 5. Kembalikan pengguna ke halaman login dengan pesan error jika kredensial salah
         return back()->withErrors([
             'email' => 'Email atau Password yang Anda masukkan salah.',
         ])->onlyInput('email');
     }
 
-    // Proses Logout
+    // Proses keluar dari sistem
     public function logout(Request $request)
     {
-        // 1. Hapus Session Auth (Pengganti currentAccessToken()->delete())
+        // 1. Akhiri sesi login pengguna saat ini
         Auth::logout();
 
-        // 2. Bersihkan sisa session browser
+        // 2. Hapus seluruh data sesi di browser demi keamanan
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // 3. Redirect ke halaman Login
+        // 3. Arahkan kembali ke halaman login
         return redirect('/login');
     }
 }

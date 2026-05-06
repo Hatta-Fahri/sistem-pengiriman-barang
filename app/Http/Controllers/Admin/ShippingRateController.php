@@ -8,17 +8,16 @@ use Illuminate\Http\Request;
 
 class ShippingRateController extends Controller
 {
-    // Menampilkan daftar rute dan tarif
     public function index()
     {
-        // Mengambil data terbaru, dibatasi 10 per halaman (Pagination)
+        // 1. Ambil daftar tarif rute pengiriman dari database secara terurut dari data terbaru
         $rates = ShippingRate::latest()->paginate(10);
         return view('admin.shipping_rates.index', compact('rates'));
     }
 
-    // Menyimpan rute baru
     public function store(Request $request)
     {
+        // 1. Validasi input nama kota tujuan, asal, dan harga tarif baru
         $validated = $request->validate([
             'origin_city'           => 'required|string|max:255',
             'destination_city'      => 'required|string|max:255',
@@ -26,20 +25,21 @@ class ShippingRateController extends Controller
             'estimated_distance_km' => 'nullable|numeric|min:0',
         ]);
 
-        // Standarisasi teks (misal: "medan" -> "Medan")
+        // 2. Format penulisan nama kota agar selalu menggunakan huruf kapital di awal kata (misal: "medan" -> "Medan")
         $origin = ucwords(strtolower($validated['origin_city']));
         $destination = ucwords(strtolower($validated['destination_city']));
 
-        // Cek manual apakah rute sudah ada agar bisa memberi pesan error yang rapi
+        // 3. Verifikasi apakah kombinasi rute kota asal dan tujuan ini sudah pernah didaftarkan
         $exists = ShippingRate::where('origin_city', $origin)
                               ->where('destination_city', $destination)
                               ->exists();
 
+        // 4. Tolak penyimpanan jika rute sudah terdaftar di sistem
         if ($exists) {
             return back()->with('error', "Rute $origin ke $destination sudah ada di sistem!");
         }
 
-        // Jika aman, simpan ke database
+        // 5. Simpan data tarif rute baru ke dalam database
         ShippingRate::create([
             'origin_city'           => $origin,
             'destination_city'      => $destination,
@@ -50,24 +50,26 @@ class ShippingRateController extends Controller
         return back()->with('success', 'Rute dan tarif berhasil ditambahkan.');
     }
 
-    // Memperbarui tarif (Admin biasanya hanya perlu update harga/jarak, bukan nama kotanya)
     public function update(Request $request, $id)
     {
+        // 1. Cari data tarif pengiriman berdasarkan ID
         $rate = ShippingRate::findOrFail($id);
 
+        // 2. Validasi input perubahan harga tarif dan estimasi jarak
         $validated = $request->validate([
             'cost_per_kg'           => 'required|numeric|min:0',
             'estimated_distance_km' => 'nullable|numeric|min:0',
         ]);
 
+        // 3. Simpan perubahan tarif ke dalam database
         $rate->update($validated);
 
         return back()->with('success', 'Tarif pengiriman berhasil diperbarui.');
     }
 
-    // Menghapus rute
     public function destroy($id)
     {
+        // 1. Cari rute pengiriman berdasarkan ID dan hapus dari database secara permanen
         ShippingRate::findOrFail($id)->delete();
         return back()->with('success', 'Rute berhasil dihapus.');
     }

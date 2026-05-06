@@ -13,7 +13,7 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        // Mengambil data terbaru, dengan pagination agar query tidak berat
+        // 1. Ambil daftar kendaraan armada dari database, diurutkan dari yang terbaru, dan terapkan pembagian halaman (pagination)
         $vehicles = Vehicle::latest()->paginate(10);
 
         return view('admin.vehicles.index', compact('vehicles'));
@@ -24,33 +24,30 @@ class VehicleController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi HANYA untuk input yang dikirim dari form
+        // 1. Validasi input form penambahan armada untuk memastikan plat nomor unik dan data kapasitas terisi benar
         $validated = $request->validate([
             'license_plate' => 'required|string|max:20|unique:vehicles,license_plate',
             'type'          => 'required|string|max:50',
             'capacity'      => 'required|numeric|min:1',
-            // Kita hapus validasi 'status' di sini karena form tambah tidak mengirimkannya
         ]);
 
-        // 2. Format & Set Nilai Default
+        // 2. Format plat nomor menjadi huruf kapital semua agar seragam di database
         $validated['license_plate'] = strtoupper($validated['license_plate']);
 
-        // Memaksa status menjadi 'Tersedia' secara otomatis untuk kendaraan baru
+        // 3. Tetapkan status kendaraan baru secara paksa menjadi 'Tersedia'
         $validated['status'] = 'Tersedia';
 
-        // 3. Simpan ke database
+        // 4. Simpan seluruh data kendaraan baru ke dalam database
         Vehicle::create($validated);
 
         return redirect()->route('vehicles.index')
             ->with('success', 'Armada kendaraan berhasil ditambahkan!');
     }
 
-    /**
-     * Memperbarui data armada yang sudah ada.
-     */
+
     public function update(Request $request, Vehicle $vehicle)
     {
-        // 1. Validasi Ketat (Mengecualikan plat nomor milik kendaraan ini sendiri)
+        // 1. Validasi pembaruan data armada, pastikan plat nomor baru tidak bentrok dengan armada lain
         $validated = $request->validate([
             'license_plate' => 'required|string|max:20|unique:vehicles,license_plate,' . $vehicle->id,
             'type'          => 'required|string|max:50',
@@ -58,10 +55,10 @@ class VehicleController extends Controller
             'status'        => 'required|in:Tersedia,Sedang Jalan,Maintenance',
         ]);
 
-        // 2. Format plat nomor
+        // 2. Format ulang plat nomor menjadi huruf kapital
         $validated['license_plate'] = strtoupper($validated['license_plate']);
 
-        // 3. Update database
+        // 3. Simpan perubahan data kendaraan ke database
         $vehicle->update($validated);
 
         return redirect()->route('vehicles.index')
@@ -73,9 +70,7 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
-        // Catatan: Karena di Model kita pakai SoftDeletes, data tidak akan benar-benar
-        // hilang dari database (bagus untuk audit trail jika truk ini pernah dipakai di manifest lama).
-
+        // 1. Hapus armada kendaraan dari sistem (menggunakan Soft Delete agar riwayat manifest lama tidak rusak)
         $vehicle->delete();
 
         return redirect()->route('vehicles.index')

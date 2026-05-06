@@ -13,15 +13,15 @@ class ShipmentController extends Controller
 {
     public function index(Request $request)
     {
-        // Siapkan query utama
+        // 1. Siapkan kerangka query utama untuk tabel Resi
         $query = Shipment::query();
 
-        // Cek jika admin memilih filter status di dropdown
+        // 2. Terapkan filter pencarian berdasarkan status jika admin memilih dari dropdown
         if ($request->filled('status')) {
             $query->where('current_status', $request->status);
         }
 
-        // Ambil data (paginate 10 per halaman, terbaru di atas)
+        // 3. Ambil data dengan pembagian halaman (pagination), diurutkan dari yang terbaru
         $shipments = $query->latest()->paginate(10);
 
         $pendingCount = Shipment::pending()->count();
@@ -31,7 +31,7 @@ class ShipmentController extends Controller
 
     public function create()
     {
-        // Tetap kirimkan jika dibutuhkan, meski di view kita hidden asal 'Medan'
+        // 1. Ambil daftar kota asal yang unik dari master tarif untuk mengisi pilihan dropdown
         $origins = ShippingRate::select('origin_city')->distinct()->pluck('origin_city');
         return view('admin.shipments.create', compact('origins'));
     }
@@ -41,12 +41,13 @@ class ShipmentController extends Controller
      */
     public function edit(Shipment $shipment)
     {
-        // SECURITY CHECK: Tolak jika resi sudah masuk manifest (sedang diantar/selesai)
+        // 1. Validasi keamanan: Tolak akses jika resi sudah dijadwalkan ke dalam manifest
         if ($shipment->manifest_id !== null) {
             return redirect()->route('shipments.index')
                 ->withErrors("Akses ditolak! Resi $shipment->tracking_number sudah masuk jadwal pengantaran dan tidak bisa diedit.");
         }
 
+        // 2. Ambil data kota asal yang tersedia di master tarif untuk form edit
         $origins = ShippingRate::select('origin_city')->distinct()->pluck('origin_city');
 
         return view('admin.shipments.edit', compact('shipment', 'origins'));
@@ -54,16 +55,17 @@ class ShipmentController extends Controller
 
     public function destroy($id)
     {
+        // 1. Cari data resi berdasarkan ID
         $shipment = Shipment::findOrFail($id);
 
-        // Keamanan Tambahan:
-        // Pastikan hanya resi berstatus Diproses (belum jalan) yang bisa dihapus.
         $statusVal = $shipment->current_status->value ?? $shipment->current_status;
 
+        // 2. Validasi keamanan: Hanya resi berstatus Diproses (belum masuk manifest) yang boleh dihapus
         if ($statusVal !== 'Diproses' || $shipment->manifest_id !== null) {
             return redirect()->route('shipments.index')->withErrors('Resi ini sudah dijadwalkan atau dalam perjalanan, tidak dapat dihapus!');
         }
 
+        // 3. Eksekusi penghapusan data dari database
         $shipment->delete();
 
         return redirect()->route('shipments.index')->with('success', 'Resi berhasil dihapus.');
@@ -71,11 +73,12 @@ class ShipmentController extends Controller
 
     public function update(Request $request, Shipment $shipment)
     {
-        // SECURITY CHECK: Double cross-check saat di-submit
+        // 1. Validasi keamanan: Cegah penyimpanan jika resi sudah masuk ke dalam jadwal manifest
         if ($shipment->manifest_id !== null) {
             return redirect()->route('shipments.index')->withErrors("Data gagal disimpan. Resi sudah dalam pengantaran.");
         }
 
+        // 2. Validasi kelengkapan dan format input dari form
         $validated = $request->validate([
             'sender_name'      => 'required|string|max:255',
             'sender_phone'     => 'required|string|max:20',
@@ -90,9 +93,10 @@ class ShipmentController extends Controller
             'jumlah_koli'      => 'required|integer|min:1',
             'weight'           => 'required|numeric|min:0.1',
             'shipping_cost'    => 'required|numeric|min:0',
-            'is_min_charge'    => 'nullable|boolean' // Toggle Switch Input
+            'is_min_charge'    => 'nullable|boolean'
         ]);
 
+        // 3. Cek ketersediaan rute pengiriman di dalam database master tarif
         $rate = ShippingRate::where('origin_city', $validated['origin_city'])
                             ->where('destination_city', $validated['destination_city'])
                             ->first();
@@ -101,19 +105,18 @@ class ShipmentController extends Controller
             return back()->withInput()->withErrors('Rute pengiriman tidak ditemukan di Master Tarif.');
         }
 
-        // LOGIKA MINIMUM CHARGE DARI TOGGLE
+        // 4. Tentukan berat yang dihitung berdasarkan aturan batas minimum tarif
         $isMinChargeActive = $request->has('is_min_charge');
         $chargeableWeight = ($isMinChargeActive && $validated['weight'] < 20) ? 20 : $validated['weight'];
 
-        // Kalkulasi ulang di backend
+        // 5. Hitung ulang total ongkos kirim di backend untuk menghindari manipulasi data dari frontend
         $expectedCost = $rate->cost_per_kg * $chargeableWeight;
 
-        // Validasi keamanan
         if (abs($expectedCost - $validated['shipping_cost']) > 1) {
             $validated['shipping_cost'] = $expectedCost;
         }
 
-        // Simpan Perubahan Data
+        // 6. Simpan seluruh perubahan data resi ke dalam database
         $shipment->update([
             'sender_name'      => $validated['sender_name'],
             'sender_phone'     => $validated['sender_phone'],
@@ -141,12 +144,15 @@ class ShipmentController extends Controller
         $origin = $request->origin_city;
         $search = $request->search;
 
+        // 1. Mulai pembentukan query untuk mencari tarif berdasarkan kota asal yang dipilih
         $query = ShippingRate::where('origin_city', $origin);
 
+        // 2. Terapkan filter pencarian nama kota tujuan jika ada input dari pengguna
         if ($search) {
             $query->where('destination_city', 'like', '%' . $search . '%');
         }
 
+        // 3. Format hasil pencarian agar sesuai dengan struktur data yang dibutuhkan oleh dropdown Select2
         $destinations = $query->get()->map(function ($rate) {
             $formattedRate = number_format($rate->cost_per_kg, 0, ',', '.');
             return [
@@ -163,6 +169,7 @@ class ShipmentController extends Controller
      */
     public function ajaxRate(Request $request)
     {
+        // 1. Cari informasi tarif spesifik berdasarkan kombinasi rute kota asal dan kota tujuan
         $rate = ShippingRate::where('origin_city', $request->origin_city)
                             ->where('destination_city', $request->destination_city)
                             ->first();
@@ -185,6 +192,7 @@ class ShipmentController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Validasi seluruh kelengkapan dan format input pengiriman dari pengguna
         $validated = $request->validate([
             'sender_name'      => 'required|string|max:255',
             'sender_phone'     => 'required|string|max:20',
@@ -199,9 +207,10 @@ class ShipmentController extends Controller
             'jumlah_koli'      => 'required|integer|min:1',
             'weight'           => 'required|numeric|min:0.1',
             'shipping_cost'    => 'required|numeric|min:0',
-            'is_min_charge'    => 'nullable|boolean' // Toggle Switch Input
+            'is_min_charge'    => 'nullable|boolean'
         ]);
 
+        // 2. Verifikasi ketersediaan rute pada master data tarif
         $rate = ShippingRate::where('origin_city', $validated['origin_city'])
                             ->where('destination_city', $validated['destination_city'])
                             ->first();
@@ -210,20 +219,21 @@ class ShipmentController extends Controller
             return back()->withInput()->withErrors('Rute pengiriman tidak ditemukan di Master Tarif.');
         }
 
-        // LOGIKA MINIMUM CHARGE DARI TOGGLE
+        // 3. Tentukan berat pengiriman akhir dengan mempertimbangkan aturan batas minimum berat
         $isMinChargeActive = $request->has('is_min_charge');
         $chargeableWeight = ($isMinChargeActive && $validated['weight'] < 20) ? 20 : $validated['weight'];
 
-        // Kalkulasi ulang di backend
+        // 4. Lakukan kalkulasi ulang total biaya pengiriman untuk mencegah manipulasi data dari *frontend*
         $expectedCost = $rate->cost_per_kg * $chargeableWeight;
 
-        // Validasi keamanan
         if (abs($expectedCost - $validated['shipping_cost']) > 1) {
             $validated['shipping_cost'] = $expectedCost;
         }
 
+        // 5. Hasilkan nomor pelacakan (resi) unik secara acak berdasarkan tanggal
         $trackingNumber = "KEN-" . date('Ymd') . "-" . strtoupper(Str::random(4));
 
+        // 6. Simpan seluruh data pengiriman baru ke dalam database sebagai status Diproses
         Shipment::create([
             'tracking_number'  => $trackingNumber,
             'sender_name'      => $validated['sender_name'],

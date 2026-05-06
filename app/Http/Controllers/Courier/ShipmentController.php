@@ -14,8 +14,10 @@ class ShipmentController extends Controller
 {
     public function index()
     {
+        // 1. Ambil data profil kurir yang sedang login saat ini
         $courier = Auth::user();
 
+        // 2. Cari jadwal (manifest) yang saat ini sedang aktif (Sedang Jalan) dan ditugaskan kepada kurir ini
         $activeManifest = Manifest::with('shipments')
             ->where('courier_id', $courier->id)
             ->where('status', 'Sedang Jalan')
@@ -26,20 +28,21 @@ class ShipmentController extends Controller
 
     public function updateStatus(Request $request, Shipment $shipment)
     {
+        // 1. Validasi input pembaruan status yang dikirimkan oleh kurir dari lapangan
         $request->validate([
             'current_status' => 'required|string',
         ]);
 
-        // 1. Update status utama
+        // 2. Perbarui status perjalanan utama paket di database
         $shipment->update([
             'current_status' => $request->current_status
         ]);
 
-        // 2. Jika statusnya DITERIMA, olah nama dan foto Base64-nya
+        // 3. Tangani alur khusus jika paket berstatus Diterima: Validasi kelengkapan nama penerima dan foto bukti (POD)
         if ($request->current_status === 'Diterima') {
             $request->validate([
                 'received_by_name' => 'required|string|max:255',
-                'photo_base64' => 'required|string', // Validasi input kamera langsung
+                'photo_base64' => 'required|string',
             ]);
 
             $dataPod = [
@@ -47,7 +50,7 @@ class ShipmentController extends Controller
                 'delivered_at' => now(),
             ];
 
-            // Proses upload Base64 langsung ke Cloudinary
+            // 4. Proses foto format Base64 dan unggah langsung ke sistem penyimpanan awan (Cloudinary)
             if ($request->filled('photo_base64')) {
                 $cloudinary = new \Cloudinary\Cloudinary(env('CLOUDINARY_URL'));
                 $uploadResult = $cloudinary->uploadApi()->upload($request->photo_base64, [
@@ -56,6 +59,7 @@ class ShipmentController extends Controller
                 $dataPod['photo_path'] = $uploadResult['secure_url'];
             }
 
+            // 5. Simpan seluruh data pelengkap Proof of Delivery ke dalam database terkait resi ini
             ProofOfDelivery::updateOrCreate(
                 ['shipment_id' => $shipment->id],
                 $dataPod
