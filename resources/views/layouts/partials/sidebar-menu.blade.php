@@ -41,11 +41,12 @@
         <span class="text-[14px]">Rute & Tarif</span>
     </a>
 
-    <a href="{{ route('couriers.index') }}"
+    {{-- Manajemen Pengguna (CRUD Admin & Kurir) --}}
+    <a href="{{ route('users.index') }}"
         class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all
-       {{ request()->is('admin/couriers*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
-        <i data-lucide="users" class="w-[18px] h-[18px] {{ request()->is('admin/couriers*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
-        <span class="text-[14px]">Manajemen Kurir</span>
+       {{ request()->is('admin/users*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
+        <i data-lucide="shield-check" class="w-[18px] h-[18px] {{ request()->is('admin/users*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
+        <span class="text-[14px]">Manajemen Pengguna</span>
     </a>
 
     <a href="{{ route('vehicles.index') }}"

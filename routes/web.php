@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\ShippingRateController;
 use App\Http\Controllers\Admin\ShipmentController;
 use App\Http\Controllers\Admin\ManifestController;
 use App\Http\Controllers\Admin\VehicleController;
-use App\Http\Controllers\Admin\CourierController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReportController;
 
 // Courier Controllers
@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ajax/rate', [ShipmentController::class, 'ajaxRate'])->name('ajax.rate');
 
         Route::resource('vehicles', VehicleController::class)->except(['create', 'edit']);
-        Route::resource('couriers', CourierController::class)->except(['create', 'edit', 'show']);
+        Route::resource('users', UserController::class)->except(['create', 'edit', 'show']); // Manajemen Pengguna
 
         // OPERASIONAL
         Route::resource('shipments', ShipmentController::class);
