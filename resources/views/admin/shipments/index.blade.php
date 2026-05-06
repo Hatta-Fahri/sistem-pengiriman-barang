@@ -26,12 +26,12 @@
                     <div class="relative w-full sm:w-56">
                         <select name="status" onchange="this.form.submit()" class="w-full appearance-none bg-white text-sm font-semibold text-gray-700 py-2.5 pl-10 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
                             <option value="">Semua Status</option>
-                            <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}>⏳ Menunggu Jadwal</option>
-                            <option value="Dalam Perjalanan" {{ request('status') == 'Dalam Perjalanan' ? 'selected' : '' }}>🚚 Dalam Perjalanan</option>
-                            <option value="Tiba di Tujuan" {{ request('status') == 'Tiba di Tujuan' ? 'selected' : '' }}>📍 Tiba di Tujuan</option>
-                            <option value="Dalam Pengantaran" {{ request('status') == 'Dalam Pengantaran' ? 'selected' : '' }}>🛵 Dalam Pengantaran</option>
-                            <option value="Diterima" {{ request('status') == 'Diterima' ? 'selected' : '' }}>✅ Paket Diterima</option>
-                            <option value="Penundaan Pengiriman" {{ request('status') == 'Penundaan Pengiriman' ? 'selected' : '' }}>⏸️ Ditunda</option>
+                            <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}> Menunggu Jadwal</option>
+                            <option value="Dalam Perjalanan" {{ request('status') == 'Dalam Perjalanan' ? 'selected' : '' }}> Dalam Perjalanan</option>
+                            <option value="Tiba di Tujuan" {{ request('status') == 'Tiba di Tujuan' ? 'selected' : '' }}> Tiba di Tujuan</option>
+                            <option value="Dalam Pengantaran" {{ request('status') == 'Dalam Pengantaran' ? 'selected' : '' }}> Dalam Pengantaran</option>
+                            <option value="Diterima" {{ request('status') == 'Diterima' ? 'selected' : '' }}> Paket Diterima</option>
+                            <option value="Penundaan Pengiriman" {{ request('status') == 'Penundaan Pengiriman' ? 'selected' : '' }}> Ditunda</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                             <i data-lucide="filter" class="w-4 h-4"></i>
