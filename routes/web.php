@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // MODULE: ADMIN SYSTEM
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
 
         // DASHBOARD ADMIN
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // MODULE: COURIER SYSTEM
-    Route::prefix('courier')->group(function () {
+    Route::prefix('courier')->middleware('role:kurir')->group(function () {
 
         // DASHBOARD KURIR
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('courier.dashboard');
