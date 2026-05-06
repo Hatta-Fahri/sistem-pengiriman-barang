@@ -8,14 +8,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model
 {
+    // 1. Manfaatkan trait SoftDeletes agar kendaraan yang dihapus tetap tersimpan di database
+    //    Ini menjaga integritas data manifest dan riwayat pengiriman yang pernah menggunakan armada ini
     use HasFactory, SoftDeletes;
 
-    // Mengizinkan semua kolom diisi secara massal kecuali 'id'
+    // 2. Gunakan guarded agar semua kolom bisa diisi secara massal kecuali 'id' (Primary Key)
     protected $guarded = ['id'];
 
-    // Relasi: Kendaraan ini dipakai oleh kurir (user) siapa saja?
-    public function users()
+    // 3. Relasi ke Manifest: Satu armada kendaraan bisa digunakan dalam banyak jadwal pengantaran dari waktu ke waktu
+    public function manifests()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Manifest::class);
     }
 }

@@ -9,18 +9,19 @@ class ShippingRate extends Model
 {
     use HasFactory;
 
+    // 1. Gunakan guarded agar semua kolom bisa diisi secara massal kecuali 'id' (Primary Key)
     protected $guarded = ['id'];
 
+    // 2. Scope 'route': Filter cepat untuk mencari tarif berdasarkan kombinasi kota asal dan kota tujuan
+    //    Contoh penggunaan: ShippingRate::route('Medan', 'Jakarta')->first();
     public function scopeRoute($query, $origin, $destination)
     {
         return $query->where('origin_city', $origin)
                      ->where('destination_city', $destination);
     }
 
-    /**
-     * Scope untuk memfilter rute berdasarkan Jalur Pengiriman (Konsolidasi Muatan)
-     * Contoh penggunaan nanti saat Penjadwalan: ShippingRate::jalur('Lintas Timur')->get();
-     */
+    // 3. Scope 'jalur': Filter cepat untuk mencari tarif berdasarkan jalur pengiriman (Konsolidasi Muatan)
+    //    Contoh penggunaan: ShippingRate::jalur('Lintas Timur')->get();
     public function scopeJalur($query, $jalur)
     {
         return $query->where('jalur_pengiriman', $jalur);
