@@ -41,19 +41,21 @@
         <span class="text-[14px]">Rute & Tarif</span>
     </a>
 
-    {{-- Manajemen Pengguna (CRUD Admin & Kurir) --}}
-    <a href="{{ route('users.index') }}"
-        class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all
-       {{ request()->is('admin/users*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
-        <i data-lucide="shield-check" class="w-[18px] h-[18px] {{ request()->is('admin/users*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
-        <span class="text-[14px]">Manajemen Pengguna</span>
-    </a>
+
+    
 
     <a href="{{ route('vehicles.index') }}"
         class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all
     {{ request()->is('admin/vehicles*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
         <i data-lucide="truck" class="w-[18px] h-[18px] {{ request()->is('admin/vehicles*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
         <span class="text-[14px]">Armada Kendaraan</span>
+    </a>
+
+    <a href="{{ route('users.index') }}"
+        class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all
+       {{ request()->is('admin/users*') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
+        <i data-lucide="shield-check" class="w-[18px] h-[18px] {{ request()->is('admin/users*') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
+        <span class="text-[14px]">Manajemen Pengguna</span>
     </a>
 
     <div class="pt-6 pb-2 px-3 flex items-center gap-2">
