@@ -190,7 +190,7 @@
                     </button>
                     <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-xl hover:bg-blue-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 shadow-sm transition-colors flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
-                        <span x-text="mode === 'create' ? 'Simpan Rute' : 'Perbarui Tarif'"></span>
+                        <span x-text="mode === 'create' ? 'Simpan Rute' : 'Update Tarif'"></span>
                     </button>
                 </div>
             </form>
