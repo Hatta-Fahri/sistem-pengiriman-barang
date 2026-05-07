@@ -67,7 +67,6 @@ Route::middleware('auth')->group(function () {
 
         Route::post('manifests/{manifest}/berangkatkan', [ManifestController::class, 'berangkatkan'])->name('manifests.berangkatkan');
         Route::post('manifests/{manifest}/generate', [ManifestController::class, 'generate'])->name('manifests.generate');
-        Route::post('/manifests/{manifest}/start', [\App\Http\Controllers\Courier\DashboardController::class, 'startJourney'])->name('courier.manifests.start');
         Route::resource('manifests', ManifestController::class);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -84,6 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/shipments', [CourierShipmentController::class, 'index'])->name('courier.shipments');
         Route::put('/shipments/{shipment}/status', [CourierShipmentController::class, 'updateStatus'])->name('courier.shipments.update-status');
 
+        Route::post('/manifests/{manifest}/start', [CourierDashboardController::class, 'startJourney'])->name('courier.manifests.start');
         Route::post('/manifests/{manifest}/complete', [CourierManifestController::class, 'complete'])->name('courier.manifests.complete');
 
         Route::get('/history', [HistoryController::class, 'index'])->name('courier.history.index');
