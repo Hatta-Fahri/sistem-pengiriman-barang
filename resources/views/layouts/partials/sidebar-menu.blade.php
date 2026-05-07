@@ -111,7 +111,7 @@
        {{ request()->routeIs('courier.history.index') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
         <div class="flex items-center gap-3">
             <i data-lucide="history" class="w-[18px] h-[18px] {{ request()->routeIs('courier.history.index') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
-            <span class="text-[14px]">Riwayat Tugas Selesai</span>
+            <span class="text-[14px]">Riwayat Pengiriman</span>
         </div>
     </a>
 @endif
