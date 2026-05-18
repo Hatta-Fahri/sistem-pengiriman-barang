@@ -21,10 +21,16 @@ class ManifestController extends Controller
 
     public function create()
     {
-        // 1. Ambil daftar resi yang belum masuk jadwal manifest atau yang sedang mengalami penundaan
-        $availableShipments = Shipment::whereNull('manifest_id')
-                                      ->orWhere('current_status', 'Penundaan Pengiriman')
-                                      ->get();
+        // 1. Ambil resi yang benar-benar bebas (belum punya manifest_id sama sekali)
+        //    ATAU resi yang berstatus Penundaan tapi sudah tidak terikat manifest aktif
+        $availableShipments = Shipment::where(function ($q) {
+            $q->whereNull('manifest_id')
+              ->orWhere(function ($q2) {
+                  // Resi bertunda yang manifest-nya sudah Selesai / dihapus
+                  $q2->where('current_status', 'Penundaan Pengiriman')
+                     ->whereNull('manifest_id');
+              });
+        })->get();
 
         // 2. Identifikasi kendaraan yang sedang dipakai dalam manifest aktif (Persiapan/Sedang Jalan)
         $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
@@ -167,9 +173,10 @@ class ManifestController extends Controller
         try {
             DB::transaction(function () use ($request, $manifest) {
                 // 3. Hitung ulang total berat paket untuk mencegah kelebihan muatan
-                $shipments = Shipment::whereIn('id', $request->shipment_ids)->get();
-                $totalWeight = $shipments->sum('weight');
-                $vehicle = Vehicle::findOrFail($request->vehicle_id);
+                $newShipmentIds = collect($request->shipment_ids);
+                $shipments      = Shipment::whereIn('id', $newShipmentIds)->get();
+                $totalWeight    = $shipments->sum('weight');
+                $vehicle        = Vehicle::findOrFail($request->vehicle_id);
 
                 if ($totalWeight > $vehicle->capacity) {
                     throw new \Exception("Kapasitas overload!");
@@ -183,18 +190,22 @@ class ManifestController extends Controller
                 // 5. Kunci kendaraan baru dengan status Terjadwal
                 $vehicle->update(['status' => 'Terjadwal']);
 
-                // 6. Lepaskan ikatan semua resi lama dari manifest ini agar kondisinya bersih
+                // 6. Lepaskan resi LAMA yang tidak ada di daftar baru (benar-benar dikeluarkan dari manifest)
+                //    Hindari null-kan manifest_id resi yang akan tetap di-reattach agar tidak bisa diedit sementara
                 $oldShipments = Shipment::where('manifest_id', $manifest->id)->get();
                 foreach ($oldShipments as $old) {
-                    $val = $old->current_status->value ?? $old->current_status;
-                    if ($val !== 'Penundaan Pengiriman') {
-                        $old->current_status = 'Diproses';
+                    if (!$newShipmentIds->contains($old->id)) {
+                        // Resi ini dikeluarkan dari manifest → kembalikan ke gudang
+                        $val = $old->current_status->value ?? $old->current_status;
+                        if ($val !== 'Penundaan Pengiriman') {
+                            $old->current_status = 'Diproses';
+                        }
+                        $old->manifest_id = null;
+                        $old->save();
                     }
-                    $old->manifest_id = null;
-                    $old->save();
                 }
 
-                // 7. Masukkan dan tautkan kembali daftar resi pilihan baru ke dalam manifest ini
+                // 7. Masukkan dan tautkan daftar resi pilihan baru ke dalam manifest ini
                 foreach ($shipments as $newShip) {
                     $val = $newShip->current_status->value ?? $newShip->current_status;
                     if ($val !== 'Penundaan Pengiriman') {

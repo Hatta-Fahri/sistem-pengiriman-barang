@@ -74,9 +74,16 @@
                         <div class="p-6 space-y-5">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Rute / Tujuan</label>
-                                <input type="text" name="jalur_pengiriman"
-                                    value="{{ old('jalur_pengiriman', $manifest->jalur_pengiriman) }}" required
-                                    class="w-full rounded-xl border-gray-300 focus:ring-blue-500 text-sm shadow-sm">
+                                <select name="jalur_pengiriman" required
+                                    class="w-full rounded-xl border-gray-300 focus:ring-blue-500 text-sm shadow-sm bg-white text-gray-900 cursor-pointer">
+                                    <option value="">-- Pilih Jalur --</option>
+                                    @php $currentJalur = old('jalur_pengiriman', $manifest->jalur_pengiriman); @endphp
+                                    <option value="Lintas Timur"  {{ $currentJalur == 'Lintas Timur'  ? 'selected' : '' }}>Lintas Timur (T.Tinggi, Siantar, Kisaran, dst)</option>
+                                    <option value="Lintas Barat"  {{ $currentJalur == 'Lintas Barat'  ? 'selected' : '' }}>Lintas Barat (Karo, Dairi, Pakpak, dst)</option>
+                                    <option value="Lintas Utara"  {{ $currentJalur == 'Lintas Utara'  ? 'selected' : '' }}>Lintas Utara (Binjai, Langkat, Aceh, dst)</option>
+                                    <option value="Lintas Selatan"{{ $currentJalur == 'Lintas Selatan'? 'selected' : '' }}>Lintas Selatan (Toba, Taput, Sidempuan, dst)</option>
+                                    <option value="Dalam Kota"    {{ $currentJalur == 'Dalam Kota'    ? 'selected' : '' }}>Dalam Kota (Medan Sekitarnya)</option>
+                                </select>
                             </div>
 
                             <div>
