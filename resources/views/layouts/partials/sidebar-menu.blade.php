@@ -77,34 +77,15 @@
         <span class="text-[12px] font-bold text-gray-400 uppercase tracking-wider">Tugas Lapangan</span>
     </div>
 
-    @php
-        // Cek apakah kurir sudah mulai perjalanan (departed_at sudah terisi)
-        $hasStarted = \App\Models\Manifest::where('courier_id', Auth::id())
-            ->where('status', 'Sedang Jalan')
-            ->whereNotNull('departed_at')
-            ->exists();
-    @endphp
-
-    @if($hasStarted)
-        {{-- Menu aktif: perjalanan sudah dimulai --}}
-        <a href="{{ route('courier.shipments') }}"
-            class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl transition-all
-           {{ request()->routeIs('courier.shipments') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
-            <div class="flex items-center gap-3">
-                <i data-lucide="list-checks" class="w-[18px] h-[18px] {{ request()->routeIs('courier.shipments') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
-                <span class="text-[14px]">Daftar & Update Paket</span>
-            </div>
-        </a>
-    @else
-        {{-- Menu terkunci: kurir belum tekan tombol Mulai Perjalanan --}}
-        <div class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl cursor-not-allowed opacity-50"
-            title="Tekan tombol 'Mulai Perjalanan Sekarang' di dashboard terlebih dahulu">
-            <div class="flex items-center gap-3 text-gray-400">
-                <i data-lucide="lock" class="w-[18px] h-[18px]"></i>
-                <span class="text-[14px] font-medium">Daftar & Update Paket</span>
-            </div>
+    {{-- Menu Daftar & Update Paket: selalu bisa diakses --}}
+    <a href="{{ route('courier.shipments') }}"
+        class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl transition-all
+       {{ request()->routeIs('courier.shipments') ? 'bg-blue-50 text-blue-800 font-bold shadow-sm border border-blue-100/50' : 'text-gray-500 hover:bg-gray-50 hover:text-blue-700 font-medium group' }}">
+        <div class="flex items-center gap-3">
+            <i data-lucide="list-checks" class="w-[18px] h-[18px] {{ request()->routeIs('courier.shipments') ? 'text-blue-600' : 'group-hover:text-blue-600 transition-colors' }}"></i>
+            <span class="text-[14px]">Daftar & Update Paket</span>
         </div>
-    @endif
+    </a>
 
     <a href="{{ route('courier.history.index') }}"
         class="flex items-center justify-between px-3 py-2.5 mb-1 rounded-xl transition-all

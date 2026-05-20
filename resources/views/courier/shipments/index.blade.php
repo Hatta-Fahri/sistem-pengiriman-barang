@@ -94,7 +94,7 @@
                         </div>
 
                         <div class="mt-4 flex items-center justify-between text-xs font-semibold text-blue-600">
-                            <span>Tekan untuk detail & ubah status</span>
+                            <span>Tekan untuk {{ $hasStarted ? 'detail & ubah status' : 'lihat detail paket' }}</span>
                             <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
                         </div>
                     </div>
@@ -123,95 +123,101 @@
                                 </div>
                             </div>
 
-                            <form action="{{ route('courier.shipments.update-status', $shipment->id) }}" method="POST" class="flex flex-col gap-4 border-t border-blue-100 pt-4" x-data="{ statusPilihan: '{{ $statusAsli }}' }">
-                                @csrf @method('PUT')
-
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Update Status Menjadi:</label>
-                                    <select name="current_status" x-model="statusPilihan" required class="w-full text-sm rounded-xl border-gray-300 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
-                                        @if($statusAsli === 'Dalam Perjalanan')
-                                            <option value="Dalam Perjalanan">🚚 Masih di Jalan (Belum Diantar)</option>
-                                        @endif
-                                        @if(in_array($statusAsli, ['Dalam Perjalanan', 'Tiba di Tujuan']))
-                                            <option value="Tiba di Tujuan">📍 Telah Tiba di Tujuan</option>
-                                        @endif
-                                        <option value="Dalam Pengantaran">🛵 OTW ke Rumah (Dalam Pengantaran)</option>
-                                        <option value="Diterima">✅ Paket Diterima Customer</option>
-                                        <option value="Penundaan Pengiriman">⏸️ Ditunda / Reschedule</option>
-                                    </select>
-                                </div>
-
-                                <div x-show="statusPilihan === 'Diterima'" x-collapse x-data="cameraCapture()" x-init="$watch('statusPilihan', value => { if(value !== 'Diterima') stopCamera() })" class="w-full bg-blue-50/80 p-4 rounded-xl border border-blue-200 space-y-4">
+                            @if($hasStarted)
+                                <form action="{{ route('courier.shipments.update-status', $shipment->id) }}" method="POST" class="flex flex-col gap-4 border-t border-blue-100 pt-4" x-data="{ statusPilihan: '{{ $statusAsli }}' }">
+                                    @csrf @method('PUT')
 
                                     <div>
-                                        <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-1.5">
-                                            Nama Penerima Paket <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="text" name="received_by_name" placeholder="Contoh: Pak Budi / Istri Pak Budi" :required="statusPilihan === 'Diterima'"
-                                            class="w-full text-sm rounded-lg border-blue-200 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
+                                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Update Status Menjadi:</label>
+                                        <select name="current_status" x-model="statusPilihan" required class="w-full text-sm rounded-xl border-gray-300 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
+                                            @if($statusAsli === 'Dalam Perjalanan')
+                                                <option value="Dalam Perjalanan">🚚 Masih di Jalan (Belum Diantar)</option>
+                                            @endif
+                                            @if(in_array($statusAsli, ['Dalam Perjalanan', 'Tiba di Tujuan']))
+                                                <option value="Tiba di Tujuan">📍 Telah Tiba di Tujuan</option>
+                                            @endif
+                                            <option value="Dalam Pengantaran">🛵 OTW ke Rumah (Dalam Pengantaran)</option>
+                                            <option value="Diterima">✅ Paket Diterima Customer</option>
+                                            <option value="Penundaan Pengiriman">⏸️ Ditunda / Reschedule</option>
+                                        </select>
                                     </div>
 
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2">
-                                            <i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti Pengiriman (POD) <span class="text-red-500">*</span>
-                                        </label>
+                                    <div x-show="statusPilihan === 'Diterima'" x-collapse x-data="cameraCapture()" x-init="$watch('statusPilihan', value => { if(value !== 'Diterima') stopCamera() })" class="w-full bg-blue-50/80 p-4 rounded-xl border border-blue-200 space-y-4">
 
-                                        <input type="hidden" name="photo_base64" x-model="photoData" :required="statusPilihan === 'Diterima'">
-
-                                        <div x-show="!isCameraOpen && !hasCaptured" class="grid grid-cols-2 gap-3">
-                                            <button type="button" @click="initCamera()" class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm focus:outline-none">
-                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                                                    <i data-lucide="camera" class="w-5 h-5 text-blue-600"></i>
-                                                </div>
-                                                <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Live Kamera</span>
-                                            </button>
-
-                                            <label class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm relative">
-                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                                                    <i data-lucide="image" class="w-5 h-5 text-blue-600"></i>
-                                                </div>
-                                                <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Pilih Galeri</span>
-                                                <input type="file" accept="image/*" class="hidden" @change="handleFileUpload($event)">
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-1.5">
+                                                Nama Penerima Paket <span class="text-red-500">*</span>
                                             </label>
+                                            <input type="text" name="received_by_name" placeholder="Contoh: Pak Budi / Istri Pak Budi" :required="statusPilihan === 'Diterima'"
+                                                class="w-full text-sm rounded-lg border-blue-200 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
                                         </div>
 
-                                        <div x-show="isCameraOpen && !hasCaptured" class="relative w-full rounded-xl overflow-hidden bg-black shadow-md border border-gray-200 aspect-video">
-                                            <video x-ref="video" class="w-full h-full object-cover" playsinline autoplay></video>
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2">
+                                                <i data-lucide="camera" class="w-3 h-3 inline"></i> Bukti Pengiriman (POD) <span class="text-red-500">*</span>
+                                            </label>
 
-                                            <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 px-4">
-                                                <button type="button" @click="stopCamera()" class="w-10 h-10 bg-red-500 rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform text-white">
-                                                    <i data-lucide="x" class="w-5 h-5"></i>
+                                            <input type="hidden" name="photo_base64" x-model="photoData" :required="statusPilihan === 'Diterima'">
+
+                                            <div x-show="!isCameraOpen && !hasCaptured" class="grid grid-cols-2 gap-3">
+                                                <button type="button" @click="initCamera()" class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm focus:outline-none">
+                                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                                        <i data-lucide="camera" class="w-5 h-5 text-blue-600"></i>
+                                                    </div>
+                                                    <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Live Kamera</span>
                                                 </button>
 
-                                                <button type="button" @click="capture()" class="w-14 h-14 bg-white rounded-full border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
-                                                    <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
+                                                <label class="h-28 bg-white rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 transition-colors shadow-sm relative">
+                                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                                        <i data-lucide="image" class="w-5 h-5 text-blue-600"></i>
+                                                    </div>
+                                                    <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Pilih Galeri</span>
+                                                    <input type="file" accept="image/*" class="hidden" @change="handleFileUpload($event)">
+                                                </label>
+                                            </div>
+
+                                            <div x-show="isCameraOpen && !hasCaptured" class="relative w-full rounded-xl overflow-hidden bg-black shadow-md border border-gray-200 aspect-video">
+                                                <video x-ref="video" class="w-full h-full object-cover" playsinline autoplay></video>
+                                                <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 px-4">
+                                                    <button type="button" @click="stopCamera()" class="w-10 h-10 bg-red-500 rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform text-white">
+                                                        <i data-lucide="x" class="w-5 h-5"></i>
+                                                    </button>
+                                                    <button type="button" @click="capture()" class="w-14 h-14 bg-white rounded-full border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+                                                        <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div x-show="hasCaptured" class="relative w-full rounded-xl overflow-hidden border-2 border-green-400 shadow-md">
+                                                <img :src="photoData" class="w-full h-auto object-cover aspect-video">
+                                                <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Siap Dikirim
+                                                </div>
+                                                <button type="button" @click="retake()" class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-red-700 flex items-center gap-1 transition-colors">
+                                                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Ulangi
                                                 </button>
                                             </div>
+
+                                            <canvas x-ref="canvas" class="hidden"></canvas>
                                         </div>
 
-                                        <div x-show="hasCaptured" class="relative w-full rounded-xl overflow-hidden border-2 border-green-400 shadow-md">
-                                            <img :src="photoData" class="w-full h-auto object-cover aspect-video">
-
-                                            <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1">
-                                                <i data-lucide="check" class="w-3 h-3"></i> Siap Dikirim
-                                            </div>
-
-                                            <button type="button" @click="retake()" class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-red-700 flex items-center gap-1 transition-colors">
-                                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Ulangi
-                                            </button>
-                                        </div>
-
-                                        <canvas x-ref="canvas" class="hidden"></canvas>
                                     </div>
 
+                                    <div class="text-right mt-2">
+                                        <button type="submit" class="w-full sm:w-auto bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2">
+                                            <i data-lucide="save" class="w-5 h-5"></i> SIMPAN PERUBAHAN
+                                        </button>
+                                    </div>
+                                </form>
+                            @else
+                                {{-- Perjalanan belum dimulai: tampilkan info saja, form dikunci --}}
+                                <div class="border-t border-blue-100 pt-4">
+                                    <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3">
+                                        <i data-lucide="lock" class="w-4 h-4 shrink-0"></i>
+                                        <p class="text-xs font-semibold">Update status belum tersedia. Tekan <strong>Mulai Perjalanan Sekarang</strong> di dashboard terlebih dahulu.</p>
+                                    </div>
                                 </div>
-
-                                <div class="text-right mt-2">
-                                    <button type="submit" class="w-full sm:w-auto bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2">
-                                        <i data-lucide="save" class="w-5 h-5"></i> SIMPAN PERUBAHAN
-                                    </button>
-                                </div>
-                            </form>
+                            @endif
 
                         </div>
                     </div>
@@ -252,7 +258,7 @@
                 <i data-lucide="check-square" class="w-10 h-10"></i>
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-2">Tidak Ada Paket</h3>
-            <p class="text-gray-500 max-w-md mx-auto">Tidak ada daftar paket yang harus diantar saat ini. Anda bisa bersantai atau tanyakan jadwal ke Admin.</p>
+            <p class="text-gray-500 max-w-md mx-auto">Belum ada jadwal pengiriman yang ditugaskan kepada Anda. Silakan hubungi Admin Gudang.</p>
         </div>
     @endif
 

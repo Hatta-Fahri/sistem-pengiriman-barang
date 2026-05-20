@@ -17,18 +17,34 @@ class ShipmentController extends Controller
         // 1. Ambil data profil kurir yang sedang login saat ini
         $courier = Auth::user();
 
-        // 2. Cari jadwal (manifest) yang saat ini sedang aktif (Sedang Jalan) dan ditugaskan kepada kurir ini
+        // 2. Cari manifest aktif: berstatus Persiapan ATAU Sedang Jalan milik kurir ini
         $activeManifest = Manifest::with('shipments')
             ->where('courier_id', $courier->id)
-            ->where('status', 'Sedang Jalan')
+            ->whereIn('status', ['Persiapan', 'Sedang Jalan'])
             ->first();
 
-        return view('courier.shipments.index', compact('activeManifest'));
+        // 3. Tentukan apakah perjalanan sudah benar-benar dimulai (departed_at terisi)
+        //    Jika belum, tombol update status tidak boleh aktif
+        $hasStarted = $activeManifest
+            && $activeManifest->status === 'Sedang Jalan'
+            && $activeManifest->departed_at !== null;
+
+        return view('courier.shipments.index', compact('activeManifest', 'hasStarted'));
     }
 
     public function updateStatus(Request $request, Shipment $shipment)
     {
-        // 1. Validasi input pembaruan status yang dikirimkan oleh kurir dari lapangan
+        // 1. Pastikan kurir sudah memulai perjalanan sebelum boleh update status
+        $hasStarted = Manifest::where('courier_id', Auth::id())
+            ->where('status', 'Sedang Jalan')
+            ->whereNotNull('departed_at')
+            ->exists();
+
+        if (!$hasStarted) {
+            return back()->withErrors('Perjalanan belum dimulai. Tekan tombol "Mulai Perjalanan Sekarang" di dashboard terlebih dahulu.');
+        }
+
+        // 2. Validasi input pembaruan status yang dikirimkan oleh kurir dari lapangan
         $request->validate([
             'current_status' => 'required|string',
         ]);
