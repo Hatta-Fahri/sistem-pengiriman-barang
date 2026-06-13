@@ -46,6 +46,7 @@ class Shipment extends Model
                     'Penundaan Pengiriman' => 'Pengiriman tertunda atau dijadwalkan ulang',
                     'Gagal Dikirim'        => 'Paket gagal dikirim',
                     'Diterima'             => 'Paket berhasil diserahkan kepada penerima',
+                    'Terjadwal'            => 'Paket telah dijadwalkan dan menunggu keberangkatan',
                     'Diproses'             => 'Paket kembali diproses / menunggu jadwal (reset jadwal)',
                     default                => 'Status paket diperbarui',
                 };

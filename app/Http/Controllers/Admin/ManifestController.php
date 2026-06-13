@@ -94,11 +94,11 @@ class ManifestController extends Controller
                     'status'           => 'Persiapan',
                 ]);
 
-                // 5. Tautkan semua resi pilihan ke manifest ini dan ubah statusnya menjadi Diproses (kecuali yang tertunda)
+                // 5. Tautkan semua resi pilihan ke manifest ini dan ubah statusnya menjadi Terjadwal (kecuali yang tertunda)
                 foreach ($shipments as $shipment) {
                     $statusVal = $shipment->current_status->value ?? $shipment->current_status;
                     if ($statusVal !== 'Penundaan Pengiriman') {
-                        $shipment->current_status = 'Diproses';
+                        $shipment->current_status = 'Terjadwal';
                     }
                     $shipment->manifest_id = $manifest->id;
                     $shipment->save();
@@ -209,7 +209,7 @@ class ManifestController extends Controller
                 foreach ($shipments as $newShip) {
                     $val = $newShip->current_status->value ?? $newShip->current_status;
                     if ($val !== 'Penundaan Pengiriman') {
-                        $newShip->current_status = 'Diproses';
+                        $newShip->current_status = 'Terjadwal';
                     }
                     $newShip->manifest_id = $manifest->id;
                     $newShip->save();
