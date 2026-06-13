@@ -16,7 +16,6 @@ class Manifest extends Model
     // 2. Casting otomatis kolom tanggal agar bisa dimanipulasi dengan fungsi Carbon (misal: format tampilan)
     protected $casts = [
         'departed_at' => 'datetime',
-        'arrived_at'  => 'datetime',
     ];
 
     // 3. Relasi ke User (Kurir): Sebuah manifest selalu ditugaskan kepada satu kurir
