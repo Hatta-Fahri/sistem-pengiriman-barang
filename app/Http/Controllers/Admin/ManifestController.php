@@ -21,14 +21,18 @@ class ManifestController extends Controller
 
     public function create()
     {
-        // 1. Ambil resi yang benar-benar bebas (belum punya manifest_id sama sekali)
-        //    ATAU resi yang berstatus Penundaan tapi sudah tidak terikat manifest aktif
+        // 1. Ambil resi yang belum punya manifest, ATAU resi Penundaan yang manifest-nya
+        //    sudah Selesai (tidak aktif lagi), sehingga bisa dijadwalkan ulang
         $availableShipments = Shipment::where(function ($q) {
             $q->whereNull('manifest_id')
               ->orWhere(function ($q2) {
-                  // Resi bertunda yang manifest-nya sudah Selesai / dihapus
                   $q2->where('current_status', 'Penundaan Pengiriman')
-                     ->whereNull('manifest_id');
+                     ->where(function ($q3) {
+                         $q3->whereNull('manifest_id')
+                            ->orWhereHas('manifest', function ($q4) {
+                                $q4->whereNotIn('status', ['Persiapan', 'Sedang Jalan']);
+                            });
+                     });
               });
         })->get();
 
