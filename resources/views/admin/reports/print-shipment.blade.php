@@ -56,11 +56,14 @@
 
         <!-- HEADER (KOP ATAS) -->
         <div class="text-center mb-10 mt-4">
+            <!-- Jika Anda punya gambar logo, hapus baris teks ini dan gunakan tag <img> di bawahnya -->
+            <!-- <img src="/path-ke-logo-anda.png" alt="Logo KEN" class="h-24 mx-auto mb-2"> -->
+
             <p class="text-xs font-bold text-red-400 italic mb-1 uppercase tracking-wider">PT. Kiriman Ekspres Nusantara</p>
             <div class="flex items-center justify-center gap-1">
                 <span class="text-5xl font-black text-blue-400 tracking-tighter uppercase">KEN</span>
             </div>
-            <div clas   s="text-3xl font-black text-red-400 uppercase tracking-widest mt-[-5px]">Logistics</div>
+            <div class="text-3xl font-black text-red-400 uppercase tracking-widest mt-[-5px]">Logistics</div>
             <p class="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-widest">
                 <span class="text-red-400">Handal</span> . <span class="text-blue-400">Cepat</span> . <span class="text-red-400">Aman</span>
             </p>
