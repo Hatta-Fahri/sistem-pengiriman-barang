@@ -32,8 +32,8 @@ class ShippingRateController extends Controller
 
         // 3. Verifikasi apakah kombinasi rute kota asal dan tujuan ini sudah pernah didaftarkan
         $exists = ShippingRate::where('origin_city', $origin)
-                              ->where('destination_city', $destination)
-                              ->exists();
+            ->where('destination_city', $destination)
+            ->exists();
 
         // 4. Tolak penyimpanan jika rute sudah terdaftar di sistem
         if ($exists) {
