@@ -17,10 +17,11 @@ class ShippingRateController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validasi input nama kota tujuan, asal, dan harga tarif baru
+        // 1. Validasi input nama kota tujuan, asal, jalur pengiriman, dan harga tarif baru
         $validated = $request->validate([
             'origin_city'           => 'required|string|max:255',
             'destination_city'      => 'required|string|max:255',
+            'jalur_pengiriman'      => 'required|string|max:255',
             'cost_per_kg'           => 'required|numeric|min:0',
             'estimated_distance_km' => 'nullable|numeric|min:0',
         ]);
@@ -43,6 +44,7 @@ class ShippingRateController extends Controller
         ShippingRate::create([
             'origin_city'           => $origin,
             'destination_city'      => $destination,
+            'jalur_pengiriman'      => $validated['jalur_pengiriman'],
             'cost_per_kg'           => $validated['cost_per_kg'],
             'estimated_distance_km' => $validated['estimated_distance_km'],
         ]);
@@ -55,8 +57,9 @@ class ShippingRateController extends Controller
         // 1. Cari data tarif pengiriman berdasarkan ID
         $rate = ShippingRate::findOrFail($id);
 
-        // 2. Validasi input perubahan harga tarif dan estimasi jarak
+        // 2. Validasi input perubahan jalur pengiriman, harga tarif, dan estimasi jarak
         $validated = $request->validate([
+            'jalur_pengiriman'      => 'required|string|max:255',
             'cost_per_kg'           => 'required|numeric|min:0',
             'estimated_distance_km' => 'nullable|numeric|min:0',
         ]);
