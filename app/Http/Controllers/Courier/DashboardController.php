@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Courier;
 
+use App\Enums\VehicleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Manifest;
 use App\Models\Shipment;
@@ -18,7 +19,7 @@ class DashboardController extends Controller
         // 2. Cari tugas jadwal (manifest) aktif yang sedang dijalankan oleh kurir ini
         $activeManifest = Manifest::with(['vehicle', 'shipments'])
             ->where('courier_id', $courier->id)
-            ->where('status', 'Sedang Jalan')
+            ->whereIn('status', ['Ditugaskan', 'Sedang Jalan'])
             ->first();
 
         // 3. Hitung total keseluruhan paket yang sudah pernah berhasil diantarkan oleh kurir ini sepanjang waktu
@@ -40,8 +41,13 @@ class DashboardController extends Controller
         }
 
         DB::transaction(function () use ($manifest) {
-            // 2. Catat stempel waktu (timestamp) keberangkatan armada pada manifest
-            $manifest->update(['departed_at' => now()]);
+            // 2. Ubah status manifest menjadi Sedang Jalan dan catat stempel waktu (timestamp) keberangkatan armada
+            $manifest->update(['status' => 'Sedang Jalan', 'departed_at' => now()]);
+
+            // 2b. Ubah status armada menjadi Sedang Digunakan karena baru sekarang benar-benar bergerak
+            if ($manifest->vehicle) {
+                $manifest->vehicle->update(['status' => VehicleStatus::SEDANG_DIGUNAKAN]);
+            }
 
             // 3. Ambil seluruh data resi yang tergabung dalam jadwal ini
             $shipments = Shipment::where('manifest_id', $manifest->id)->get();

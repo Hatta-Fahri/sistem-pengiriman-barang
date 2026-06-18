@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VehicleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Manifest;
 use App\Models\Shipment;
@@ -30,24 +31,24 @@ class ManifestController extends Controller
                      ->where(function ($q3) {
                          $q3->whereNull('manifest_id')
                             ->orWhereHas('manifest', function ($q4) {
-                                $q4->whereNotIn('status', ['Persiapan', 'Sedang Jalan']);
+                                $q4->whereNotIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan']);
                             });
                      });
               });
         })->get();
 
-        // 2. Identifikasi kendaraan yang sedang dipakai dalam manifest aktif (Persiapan/Sedang Jalan)
-        $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+        // 2. Identifikasi kendaraan yang sedang dipakai dalam manifest aktif (Persiapan/Ditugaskan/Sedang Jalan)
+        $assignedVehicleIds = Manifest::whereIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan'])
                                       ->whereNotNull('vehicle_id')
                                       ->pluck('vehicle_id');
 
         // 3. Saring daftar kendaraan agar hanya menampilkan armada yang berstatus Tersedia dan tidak sedang dipakai
-        $availableVehicles = Vehicle::where('status', 'Tersedia')
+        $availableVehicles = Vehicle::where('status', VehicleStatus::TERSEDIA)
                                     ->whereNotIn('id', $assignedVehicleIds)
                                     ->get();
 
         // 4. Identifikasi kurir yang saat ini sedang memiliki tugas di manifest aktif
-        $assignedCourierIds = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+        $assignedCourierIds = Manifest::whereIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan'])
                                       ->whereNotNull('courier_id')
                                       ->pluck('courier_id');
 
@@ -109,7 +110,7 @@ class ManifestController extends Controller
                 }
 
                 // 6. Ubah status kendaraan menjadi Terjadwal agar tidak bisa ditarik oleh manifest lain
-                $vehicle->update(['status' => 'Terjadwal']);
+                $vehicle->update(['status' => VehicleStatus::TERJADWAL]);
             });
 
             return redirect()->route('manifests.index')->with('success', 'Jadwal & Muatan berhasil disimpan! Siap diberangkatkan.');
@@ -132,18 +133,18 @@ class ManifestController extends Controller
                                       ->get();
 
         // 3. Cari daftar kendaraan yang tersedia dan pastikan kendaraan di manifest ini saat ini tetap bisa dipilih
-        $otherAssignedVehicles = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+        $otherAssignedVehicles = Manifest::whereIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan'])
                                          ->where('id', '!=', $manifest->id)
                                          ->whereNotNull('vehicle_id')
                                          ->pluck('vehicle_id');
 
-        $availableVehicles = Vehicle::where('status', 'Tersedia')
+        $availableVehicles = Vehicle::where('status', VehicleStatus::TERSEDIA)
                                     ->whereNotIn('id', $otherAssignedVehicles)
                                     ->orWhere('id', $manifest->vehicle_id)
                                     ->get();
 
         // 4. Cari daftar kurir yang sedang luang, dan pastikan kurir pada manifest ini tetap muncul di opsi
-        $otherAssignedCouriers = Manifest::whereIn('status', ['Persiapan', 'Sedang Jalan'])
+        $otherAssignedCouriers = Manifest::whereIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan'])
                                          ->where('id', '!=', $manifest->id)
                                          ->whereNotNull('courier_id')
                                          ->pluck('courier_id');
@@ -188,11 +189,11 @@ class ManifestController extends Controller
 
                 // 4. Jika kendaraan diubah, bebaskan kendaraan lama menjadi Tersedia kembali
                 if ($manifest->vehicle_id && $manifest->vehicle_id != $request->vehicle_id) {
-                    Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
+                    Vehicle::where('id', $manifest->vehicle_id)->update(['status' => VehicleStatus::TERSEDIA]);
                 }
 
                 // 5. Kunci kendaraan baru dengan status Terjadwal
-                $vehicle->update(['status' => 'Terjadwal']);
+                $vehicle->update(['status' => VehicleStatus::TERJADWAL]);
 
                 // 6. Lepaskan resi LAMA yang tidak ada di daftar baru (benar-benar dikeluarkan dari manifest)
                 //    Hindari null-kan manifest_id resi yang akan tetap di-reattach agar tidak bisa diedit sementara
@@ -244,17 +245,26 @@ class ManifestController extends Controller
 
     public function berangkatkan(Manifest $manifest)
     {
-        DB::transaction(function () use ($manifest) {
-            // 1. Ubah status manifest menjadi Sedang Jalan agar kurir menerima tugasnya
-            $manifest->update(['status' => 'Sedang Jalan']);
-
-            // 2. Ubah status armada menjadi Sedang Digunakan
-            if ($manifest->vehicle) {
-                $manifest->vehicle->update(['status' => 'Sedang Digunakan']);
-            }
-        });
+        // Ubah status manifest menjadi Ditugaskan agar kurir menerima tugasnya di aplikasi.
+        // Armada tetap berstatus Terjadwal karena belum benar-benar bergerak (kurir belum menekan "Mulai Perjalanan").
+        $manifest->update(['status' => 'Ditugaskan']);
 
         return back()->with('success', 'Tugas berhasil diteruskan ke aplikasi Kurir!');
+    }
+
+    public function batalkanTugas(Manifest $manifest)
+    {
+        // Tolak pembatalan jika manifest belum/sudah tidak lagi berstatus Ditugaskan
+        // (misalnya kurir sudah menekan "Mulai Perjalanan" sehingga status sudah menjadi Sedang Jalan)
+        if ($manifest->status !== 'Ditugaskan') {
+            return back()->withErrors('Tugas tidak bisa dibatalkan karena kurir sudah memulai perjalanan.');
+        }
+
+        // Kembalikan status manifest menjadi Persiapan agar bisa diedit/dibatalkan ulang.
+        // Armada tidak perlu diubah karena masih berstatus Terjadwal sejak awal dibuat.
+        $manifest->update(['status' => 'Persiapan']);
+
+        return back()->with('success', 'Tugas dibatalkan, jadwal dikembalikan ke status Persiapan.');
     }
 
     public function destroy(Manifest $manifest)
@@ -272,7 +282,7 @@ class ManifestController extends Controller
 
         // 2. Kembalikan status kendaraan menjadi Tersedia agar bisa dipakai oleh jadwal lain
         if ($manifest->vehicle_id) {
-            Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
+            Vehicle::where('id', $manifest->vehicle_id)->update(['status' => VehicleStatus::TERSEDIA]);
         }
 
         // 3. Hapus data manifest secara permanen

@@ -65,16 +65,18 @@
                                     @php
                                         $statusColors = [
                                             'Tersedia' => 'bg-green-100 text-green-700 border-green-200',
-                                            'Sedang Jalan' => 'bg-blue-100 text-blue-700 border-blue-200',
+                                            'Terjadwal' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                                            'Sedang Digunakan' => 'bg-blue-100 text-blue-700 border-blue-200',
                                             'Maintenance' => 'bg-red-100 text-red-700 border-red-200',
                                         ];
+                                        $statusVal = $vehicle->status->value ?? $vehicle->status;
                                         $colorClass =
-                                            $statusColors[$vehicle->status] ??
+                                            $statusColors[$statusVal] ??
                                             'bg-gray-100 text-gray-700 border-gray-200';
                                     @endphp
                                     <span
                                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border {{ $colorClass }}">
-                                        {{ $vehicle->status }}
+                                        {{ $statusVal }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">

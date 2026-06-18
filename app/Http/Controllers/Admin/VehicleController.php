@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VehicleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
@@ -35,7 +37,7 @@ class VehicleController extends Controller
         $validated['license_plate'] = strtoupper($validated['license_plate']);
 
         // 3. Tetapkan status kendaraan baru secara paksa menjadi 'Tersedia'
-        $validated['status'] = 'Tersedia';
+        $validated['status'] = VehicleStatus::TERSEDIA;
 
         // 4. Simpan seluruh data kendaraan baru ke dalam database
         Vehicle::create($validated);
@@ -52,7 +54,12 @@ class VehicleController extends Controller
             'license_plate' => 'required|string|max:20|unique:vehicles,license_plate,' . $vehicle->id,
             'type'          => 'required|string|max:50',
             'capacity'      => 'required|numeric|min:1',
-            'status'        => 'required|in:Tersedia,Sedang Jalan,Maintenance',
+            // 'Terjadwal' sengaja tidak diizinkan di sini karena status itu hanya boleh diset otomatis oleh sistem manifest
+            'status'        => ['required', Rule::in([
+                VehicleStatus::TERSEDIA,
+                VehicleStatus::SEDANG_DIGUNAKAN,
+                VehicleStatus::MAINTENANCE,
+            ])],
         ]);
 
         // 2. Format ulang plat nomor menjadi huruf kapital

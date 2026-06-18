@@ -64,7 +64,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Status Kendaraan <span class="text-red-500">*</span></label>
                         <select id="edit_status" name="status" required class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                             <option value="Tersedia">Tersedia</option>
-                            <option value="Sedang Jalan">Sedang Jalan</option>
+                            <option value="Sedang Digunakan">Sedang Digunakan</option>
                             <option value="Maintenance">Maintenance (Perbaikan)</option>
                         </select>
                     </div>
