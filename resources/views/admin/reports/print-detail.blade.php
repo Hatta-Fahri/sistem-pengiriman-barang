@@ -9,16 +9,24 @@
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
         /* Area Kertas Putih A4 untuk Tampilan Web */
-        .paper-container {
+       .paper-container {
             background-color: white;
-            width: 210mm; /* Lebar A4 */
-            min-height: 297mm; /* Tinggi minimal A4 */
+            width: 210mm;
+            /* Lebar A4 */
+            min-height: 297mm;
+            /* Tinggi minimal A4 */
             margin: 20px auto;
             padding: 15mm;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             position: relative;
-            padding-bottom: 40mm; /* Space untuk footer di web */
+            padding-bottom: 40mm;
+            display: flex;
+            flex-direction: column;
+            /* Space untuk footer di web */
         }
+.content-area {
+    flex: 1;
+}
 
         /* Aturan Khusus Saat Diprint */
         @media print {
@@ -26,9 +34,9 @@
             .paper-container {
                 box-shadow: none;
                 margin: 0;
-                padding: 0;
+                padding: 15mm;
                 width: 100%;
-                min-height: auto;
+                min-height: 297mm;
                 padding-bottom: 0;
             }
             @page {
@@ -39,12 +47,13 @@
             img { max-height: 80px; object-fit: cover; }
 
             /* Memaksa elemen footer berada di bagian paling bawah tiap halaman cetak */
-            .print-footer {
+             .print-footer {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                background-color: white; /* Mencegah tulisan tertumpuk */
+                background-color: white;
+                margin-top: auto;
             }
             /* Memberi jarak pada tabel agar tidak tertutup footer di halaman terakhir */
             .content-area {
@@ -142,30 +151,24 @@
             </div>
 
             <!-- Kolom Kontak -->
-            <div class="pl-8">
-                <table class="w-full">
-                    <tr>
-                        <td class="font-bold w-24 align-top">Office Number:</td>
-                        <td>+6282275108520</td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold align-top">Office Number:</td>
-                        <td>+628126494711</td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold align-top mt-1 block">Website:</td>
-                        <td class="mt-1 block">www.kenlogistics.org</td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold align-top">Email:</td>
-                        <td>
-                            customerservice@kenlogistics.org<br>
-                            sinex.iskandar@gmail.com
-                        </td>
-                    </tr>
-                </table>
-            </div>
+           <div class="pl-8">
+    <div class="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1 text-[11px] text-[#7196d4]">
+        <div class="font-bold">Office:</div>
+        <div>+6282275108520</div>
+        
+        <div class="font-bold">Office:</div>
+        <div>+628126494711</div>
+        
+        <div class="font-bold">Website:</div>
+        <div class="break-all">www.kenlogistics.org</div>
+        
+        <div class="font-bold">Email:</div>
+        <div class="break-words">
+            customerservice@kenlogistics.org<br>
+            sinex.iskandar@gmail.com
         </div>
+    </div>
+</div>
 
     </div>
 
