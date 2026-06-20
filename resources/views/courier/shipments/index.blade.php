@@ -94,7 +94,15 @@
                         </div>
 
                         <div class="mt-4 flex items-center justify-between text-xs font-semibold text-blue-600">
-                            <span>Tekan untuk {{ $hasStarted ? 'detail & ubah status' : 'lihat detail paket' }}</span>
+                            <span>Tekan untuk
+                                @if($statusAsli === 'Diterima')
+                                    lihat bukti pengiriman
+                                @elseif($hasStarted)
+                                    detail & ubah status
+                                @else
+                                    lihat detail paket
+                                @endif
+                            </span>
                             <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
                         </div>
                     </div>
@@ -123,7 +131,50 @@
                                 </div>
                             </div>
 
-                            @if($hasStarted)
+                            @if($statusAsli === 'Diterima')
+                                {{-- Status sudah final: tampilkan ringkasan POD, form dikunci permanen --}}
+                                <div class="border-t border-green-100 pt-4 space-y-4">
+
+                                    {{-- Badge Status Final --}}
+                                    <div class="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3">
+                                        <i data-lucide="shield-check" class="w-4 h-4 shrink-0 text-green-600"></i>
+                                        <div>
+                                            <p class="text-xs font-black text-green-800">Paket Telah Diterima — Status Terkunci</p>
+                                            <p class="text-[11px] text-green-600 mt-0.5">Status ini sudah final dan tidak dapat diubah lagi.</p>
+                                        </div>
+                                    </div>
+
+                                    {{-- Ringkasan Data POD --}}
+                                    @if($shipment->proofOfDelivery)
+                                        <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Bukti Pengiriman (POD)</p>
+                                            </div>
+                                            <div class="p-4 flex flex-col sm:flex-row gap-4 items-start">
+                                                <div class="flex-1 space-y-2">
+                                                    <div>
+                                                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Diserahkan Kepada</p>
+                                                        <p class="text-sm font-black text-gray-900 mt-0.5">{{ $shipment->proofOfDelivery->received_by_name }}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Waktu Diterima</p>
+                                                        <p class="text-xs font-semibold text-gray-600 mt-0.5">
+                                                            {{ \Carbon\Carbon::parse($shipment->proofOfDelivery->delivered_at)->format('d M Y, H:i') }} WIB
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                @if($shipment->proofOfDelivery->photo_path)
+                                                    <a href="{{ $shipment->proofOfDelivery->photo_url }}" target="_blank"
+                                                       class="block w-full sm:w-28 h-24 rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:scale-105 transition-transform duration-300 shrink-0">
+                                                        <img src="{{ $shipment->proofOfDelivery->photo_url }}" alt="Foto POD" class="w-full h-full object-cover">
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                            @elseif($hasStarted)
                                 <form action="{{ route('courier.shipments.update-status', $shipment->id) }}" method="POST" class="flex flex-col gap-4 border-t border-blue-100 pt-4" x-data="{ statusPilihan: '{{ $statusAsli }}' }">
                                     @csrf @method('PUT')
 

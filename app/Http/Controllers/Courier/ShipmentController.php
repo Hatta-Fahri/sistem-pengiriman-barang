@@ -34,7 +34,13 @@ class ShipmentController extends Controller
 
     public function updateStatus(Request $request, Shipment $shipment)
     {
-        // 1. Pastikan kurir sudah memulai perjalanan sebelum boleh update status
+        // 1. Cek apakah status paket ini sudah final (Diterima) — tidak boleh diubah lagi
+        $currentStatus = $shipment->current_status?->value ?? $shipment->current_status;
+        if ($currentStatus === 'Diterima') {
+            return back()->withErrors('Status paket ' . $shipment->tracking_number . ' sudah final (Diterima) dan tidak dapat diubah lagi.');
+        }
+
+        // 2. Pastikan kurir sudah memulai perjalanan sebelum boleh update status
         $hasStarted = Manifest::where('courier_id', Auth::id())
             ->where('status', 'Sedang Jalan')
             ->whereNotNull('departed_at')
