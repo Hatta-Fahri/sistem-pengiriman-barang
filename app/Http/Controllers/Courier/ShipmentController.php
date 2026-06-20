@@ -44,29 +44,33 @@ class ShipmentController extends Controller
             return back()->withErrors('Perjalanan belum dimulai. Tekan tombol "Mulai Perjalanan Sekarang" di dashboard terlebih dahulu.');
         }
 
-        // 2. Validasi input pembaruan status yang dikirimkan oleh kurir dari lapangan
+        // 2. Validasi input pembaruan status dari kurir
         $request->validate([
             'current_status' => 'required|string',
         ]);
 
-        // 2. Perbarui status perjalanan utama paket di database
+        // 3. Jika status yang dipilih adalah "Diterima", lakukan validasi lengkap POD TERLEBIH DAHULU
+        //    sebelum menyentuh database, agar status tidak terlanjur tersimpan jika foto tidak ada.
+        if ($request->current_status === 'Diterima') {
+            $request->validate([
+                'received_by_name' => 'required|string|max:255',
+                'photo_base64'     => 'required|string',
+            ]);
+        }
+
+        // 4. Setelah semua validasi lolos, baru perbarui status di database
         $shipment->update([
             'current_status' => $request->current_status
         ]);
 
-        // 3. Tangani alur khusus jika paket berstatus Diterima: Validasi kelengkapan nama penerima dan foto bukti (POD)
+        // 5. Tangani penyimpanan data Proof of Delivery jika status "Diterima"
         if ($request->current_status === 'Diterima') {
-            $request->validate([
-                'received_by_name' => 'required|string|max:255',
-                'photo_base64' => 'required|string',
-            ]);
-
             $dataPod = [
                 'received_by_name' => $request->received_by_name,
-                'delivered_at' => now(),
+                'delivered_at'     => now(),
             ];
 
-            // 4. Proses foto format Base64 dan unggah langsung ke sistem penyimpanan awan (Cloudinary)
+            // 6. Proses foto format Base64 dan unggah langsung ke sistem penyimpanan awan (Cloudinary)
             if ($request->filled('photo_base64')) {
                 $cloudinary = new \Cloudinary\Cloudinary(env('CLOUDINARY_URL'));
                 $uploadResult = $cloudinary->uploadApi()->upload($request->photo_base64, [
@@ -75,7 +79,7 @@ class ShipmentController extends Controller
                 $dataPod['photo_path'] = $uploadResult['secure_url'];
             }
 
-            // 5. Simpan seluruh data pelengkap Proof of Delivery ke dalam database terkait resi ini
+            // 7. Simpan seluruh data POD ke database terkait resi ini
             ProofOfDelivery::updateOrCreate(
                 ['shipment_id' => $shipment->id],
                 $dataPod
