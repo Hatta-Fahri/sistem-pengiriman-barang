@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Courier;
 
+use App\Enums\VehicleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Manifest;
 use App\Models\Vehicle;
@@ -30,7 +31,7 @@ class ManifestController extends Controller
 
             // 4. Kembalikan status armada kendaraan menjadi Tersedia agar bisa dipakai oleh jadwal lain
             if ($manifest->vehicle_id) {
-                Vehicle::where('id', $manifest->vehicle_id)->update(['status' => 'Tersedia']);
+                Vehicle::where('id', $manifest->vehicle_id)->update(['status' => VehicleStatus::TERSEDIA]);
             }
         });
 

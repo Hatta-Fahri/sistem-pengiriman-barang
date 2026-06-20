@@ -144,6 +144,18 @@
                                             </form>
                                         @endif
 
+                                        @if ($manifest->status === 'Ditugaskan')
+                                            <form action="{{ route('manifests.batalkanTugas', $manifest->id) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Batalkan tugas ini? Jadwal akan dikembalikan ke status Persiapan.');">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="px-3 py-1.5 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center gap-1 shadow-sm">
+                                                    <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Batalkan
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         @if ($manifest->status === 'Persiapan')
                                             <a href="{{ route('manifests.edit', $manifest->id) }}"
                                                 class="px-3 py-1.5 bg-white border border-gray-200 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center gap-1 shadow-sm">

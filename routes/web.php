@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('shipments', ShipmentController::class);
 
         Route::post('manifests/{manifest}/berangkatkan', [ManifestController::class, 'berangkatkan'])->name('manifests.berangkatkan');
+        Route::post('manifests/{manifest}/batalkan-tugas', [ManifestController::class, 'batalkanTugas'])->name('manifests.batalkanTugas');
         Route::post('manifests/{manifest}/generate', [ManifestController::class, 'generate'])->name('manifests.generate');
         Route::resource('manifests', ManifestController::class);
 

@@ -51,10 +51,15 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         // 4. Generate kode kurir otomatis jika role adalah kurir
+        //    Sertakan kurir yang sudah di-soft-delete (withTrashed) agar nomor yang sudah pernah
+        //    terpakai tidak digenerate ulang, karena courier_code unik di database tetap menyimpan baris yang terhapus
         if ($request->role === 'kurir') {
-            $lastCourier = User::where('role', 'kurir')->whereNotNull('courier_code')->orderBy('id', 'desc')->first();
-            $newNumber   = $lastCourier ? (int) substr($lastCourier->courier_code, 3) + 1 : 1;
-            $validated['courier_code'] = 'KRR' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+            $maxNumber = User::withTrashed()
+                ->where('role', 'kurir')
+                ->whereNotNull('courier_code')
+                ->get()
+                ->reduce(fn ($max, $courier) => max($max, (int) substr($courier->courier_code, 3)), 0);
+            $validated['courier_code'] = 'KRR' . str_pad($maxNumber + 1, 3, '0', STR_PAD_LEFT);
         }
 
         // 5. Simpan akun baru ke database

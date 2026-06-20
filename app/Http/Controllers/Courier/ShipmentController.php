@@ -17,10 +17,10 @@ class ShipmentController extends Controller
         // 1. Ambil data profil kurir yang sedang login saat ini
         $courier = Auth::user();
 
-        // 2. Cari manifest aktif: berstatus Persiapan ATAU Sedang Jalan milik kurir ini
+        // 2. Cari manifest aktif: berstatus Persiapan, Ditugaskan, ATAU Sedang Jalan milik kurir ini
         $activeManifest = Manifest::with('shipments')
             ->where('courier_id', $courier->id)
-            ->whereIn('status', ['Persiapan', 'Sedang Jalan'])
+            ->whereIn('status', ['Persiapan', 'Ditugaskan', 'Sedang Jalan'])
             ->first();
 
         // 3. Tentukan apakah perjalanan sudah benar-benar dimulai (departed_at terisi)
