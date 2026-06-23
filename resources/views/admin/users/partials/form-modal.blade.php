@@ -47,8 +47,8 @@
                             <input type="password" name="password" required minlength="6" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500" placeholder="Minimal 6 karakter">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                            <input type="text" name="phone" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500" placeholder="0812...">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon <span class="text-red-500">*</span></label>
+                            <input type="number" name="phone" required class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500" placeholder="0812...">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
@@ -133,7 +133,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                            <input type="text" id="edit_phone" name="phone" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                            <input type="number" id="edit_phone" name="phone" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
