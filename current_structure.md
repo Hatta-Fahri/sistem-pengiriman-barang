@@ -21,7 +21,7 @@ Satu route publik tersedia untuk tracking pengiriman tanpa autentikasi.
 
 | Class | Tanggung Jawab |
 |---|---|
-| `ShipmentStatus` | Mendefinisikan status valid pengiriman: `Diproses`, `Terjadwal`, `Dalam Perjalanan`, `Tiba di Tujuan`, `Dalam Pengantaran`, `Diterima`, `Penundaan Pengiriman` |
+| `ShipmentStatus` | Mendefinisikan status valid pengiriman: `Diproses`, `Terjadwal`, `Dalam Perjalanan`, `Tiba di Kota Tujuan`, `Dalam Pengantaran`, `Diterima`, `Penundaan Pengiriman` |
 
 ### Models
 
@@ -128,7 +128,7 @@ classDiagram
         DIPROSES = "Diproses"
         TERJADWAL = "Terjadwal"
         DALAM_PERJALANAN = "Dalam Perjalanan"
-        TIBA_DI_TUJUAN = "Tiba di Tujuan"
+        TIBA_DI_TUJUAN = "Tiba di Kota Tujuan"
         DALAM_PENGANTARAN = "Dalam Pengantaran"
         DITERIMA = "Diterima"
         PENUNDAAN = "Penundaan Pengiriman"

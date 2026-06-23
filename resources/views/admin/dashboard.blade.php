@@ -201,7 +201,7 @@
                                         $statusStr = $shipment->current_status->value ?? $shipment->current_status;
                                         $badgeColor = match($statusStr) {
                                             'Diproses', 'Menunggu Jadwal' => 'bg-gray-100 text-gray-600 border-gray-200',
-                                            'Dalam Perjalanan', 'Tiba di Tujuan' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                            'Dalam Perjalanan', 'Tiba di Kota Tujuan' => 'bg-purple-50 text-purple-700 border-purple-200',
                                             'Dalam Pengantaran' => 'bg-blue-50 text-blue-700 border-blue-200',
                                             'Diterima', 'Selesai' => 'bg-green-50 text-green-700 border-green-200',
                                             'Penundaan Pengiriman' => 'bg-orange-50 text-orange-700 border-orange-200',

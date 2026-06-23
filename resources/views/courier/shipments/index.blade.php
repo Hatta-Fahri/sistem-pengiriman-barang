@@ -182,14 +182,14 @@
                                         <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Update Status Menjadi:</label>
                                         <select name="current_status" x-model="statusPilihan" required class="w-full text-sm rounded-xl border-gray-300 focus:ring-blue-600 focus:border-blue-600 shadow-sm">
                                             @if($statusAsli === 'Dalam Perjalanan')
-                                                <option value="Dalam Perjalanan">🚚 Masih di Jalan (Belum Diantar)</option>
+                                                <option value="Dalam Perjalanan"> Masih di Jalan (Belum Diantar)</option>
                                             @endif
-                                            @if(in_array($statusAsli, ['Dalam Perjalanan', 'Tiba di Tujuan']))
-                                                <option value="Tiba di Tujuan">📍 Telah Tiba di Tujuan</option>
+                                            @if(in_array($statusAsli, ['Dalam Perjalanan', 'Tiba di Kota Tujuan']))
+                                                <option value="Tiba di Kota Tujuan"> Telah Tiba di Kota Tujuan</option>
                                             @endif
-                                            <option value="Dalam Pengantaran">🛵 OTW ke Rumah (Dalam Pengantaran)</option>
-                                            <option value="Diterima">✅ Paket Diterima Customer</option>
-                                            <option value="Penundaan Pengiriman">⏸️ Ditunda / Reschedule</option>
+                                            <option value="Dalam Pengantaran"> OTW ke Rumah (Dalam Pengantaran)</option>
+                                            <option value="Diterima"> Paket Diterima Customer</option>
+                                            <option value="Penundaan Pengiriman"> Ditunda / Reschedule</option>
                                         </select>
                                     </div>
 

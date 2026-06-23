@@ -41,7 +41,7 @@ class Shipment extends Model
                 // 6. Tentukan pesan keterangan (catatan) yang relevan berdasarkan status baru yang berlaku
                 $notes = match($statusVal) {
                     'Dalam Perjalanan'     => "Paket sedang dibawa menuju {$shipment->destination_city}",
-                    'Tiba di Tujuan'       => "Paket telah tiba di {$shipment->destination_city}",
+                    'Tiba di Kota Tujuan'       => "Paket telah tiba di {$shipment->destination_city}",
                     'Dalam Pengantaran'    => 'Kurir sedang mengantar paket ke alamat penerima',
                     'Penundaan Pengiriman' => 'Pengiriman tertunda atau dijadwalkan ulang',
                     'Gagal Dikirim'        => 'Paket gagal dikirim',

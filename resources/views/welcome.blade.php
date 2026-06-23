@@ -126,7 +126,7 @@
                 $displayStatus = match($statusVal) {
                     'Diproses', 'Menunggu Jadwal' => 'Sedang Diproses di Gudang',
                     'Dalam Perjalanan' => 'Dalam Perjalanan',
-                    'Tiba di Tujuan' => 'Tiba di Kota Tujuan',
+                    'Tiba di Kota Tujuan' => 'Tiba di Kota Tujuan',
                     'Dalam Pengantaran' => 'Sedang Dalam Pengantaran Kurir',
                     'Diterima' => 'Paket Telah Diterima',
                     'Penundaan Pengiriman' => 'Pengiriman Ditunda',
