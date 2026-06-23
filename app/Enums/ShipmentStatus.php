@@ -11,6 +11,7 @@ enum ShipmentStatus: string
     case DALAM_PENGANTARAN = 'Dalam Pengantaran';
     case DITERIMA = 'Diterima';
     case PENUNDAAN = 'Penundaan Pengiriman';
+    case DIBATALKAN = 'Dibatalkan';
 
     public static function values(): array
     {

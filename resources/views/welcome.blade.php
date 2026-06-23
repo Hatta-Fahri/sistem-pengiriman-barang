@@ -121,7 +121,7 @@
                 // Teks Utama Header Berdasarkan Current Status
                 $statusVal = $shipment->current_status->value ?? $shipment->current_status;
                 $isFinal   = in_array($statusVal, ['Diterima', 'Selesai']);
-                $isTunda   = in_array($statusVal, ['Penundaan Pengiriman', 'Gagal Dikirim']);
+                $isTunda   = in_array($statusVal, ['Penundaan Pengiriman', 'Gagal Dikirim', 'Dibatalkan']);
 
                 $displayStatus = match($statusVal) {
                     'Diproses', 'Menunggu Jadwal' => 'Sedang Diproses di Gudang',
@@ -130,6 +130,7 @@
                     'Dalam Pengantaran' => 'Sedang Dalam Pengantaran Kurir',
                     'Diterima' => 'Paket Telah Diterima',
                     'Penundaan Pengiriman' => 'Pengiriman Ditunda',
+                    'Dibatalkan' => 'Resi Dibatalkan, Hubungi CS',
                     default => $statusVal
                 };
             @endphp
@@ -211,6 +212,7 @@
                                 // Penentuan Icon
                                 $icon = match($logStatus) {
                                     'Penundaan Pengiriman', 'Gagal Dikirim' => 'clock',
+                                    'Dibatalkan' => 'x',
                                     'Diterima', 'Selesai' => 'check',
                                     'Dalam Pengantaran' => 'truck',
                                     'Dalam Perjalanan', 'Tiba di Tujuan' => 'arrow-right',

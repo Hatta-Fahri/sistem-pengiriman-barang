@@ -71,6 +71,28 @@ class ShipmentController extends Controller
         return redirect()->route('shipments.index')->with('success', 'Resi berhasil dihapus.');
     }
 
+    /**
+     * Keluarkan resi yang berstatus Penundaan Pengiriman dari daftar penjadwalan secara permanen
+     * (dipakai saat customer memilih dibuatkan resi baru daripada menjadwalkan ulang resi lama).
+     */
+    public function cancelPermanent(Shipment $shipment)
+    {
+        $statusVal = $shipment->current_status->value ?? $shipment->current_status;
+
+        // 1. Hanya resi Penundaan Pengiriman yang manifest-nya sudah tidak aktif boleh dibatalkan permanen,
+        //    cermin dari kondisi yang membuat resi ini muncul di halaman "Buat Jadwal" untuk dijadwalkan ulang.
+        $manifestAktif = $shipment->manifest && in_array($shipment->manifest->status, ['Persiapan', 'Ditugaskan', 'Sedang Jalan']);
+
+        if ($statusVal !== 'Penundaan Pengiriman' || $manifestAktif) {
+            return back()->withErrors('Resi ini tidak bisa dibatalkan permanen.');
+        }
+
+        // 2. Ubah status menjadi Dibatalkan agar resi tidak lagi muncul di daftar resi yang bisa dijadwalkan
+        $shipment->update(['current_status' => ShipmentStatus::DIBATALKAN]);
+
+        return back()->with('success', "Resi {$shipment->tracking_number} berhasil dikeluarkan dari jadwal secara permanen.");
+    }
+
     public function update(Request $request, Shipment $shipment)
     {
         // 1. Validasi keamanan: Cegah penyimpanan jika resi sudah masuk ke dalam jadwal manifest

@@ -45,6 +45,7 @@ class Shipment extends Model
                     'Dalam Pengantaran'    => 'Kurir sedang mengantar paket ke alamat penerima',
                     'Penundaan Pengiriman' => 'Pengiriman tertunda atau dijadwalkan ulang',
                     'Gagal Dikirim'        => 'Paket gagal dikirim',
+                    'Dibatalkan'           => 'Resi dibatalkan permanen dan tidak akan dijadwalkan ulang',
                     'Diterima'             => 'Paket berhasil diserahkan kepada penerima',
                     'Terjadwal'            => 'Paket telah dijadwalkan dan menunggu keberangkatan',
                     'Diproses'             => 'Paket kembali diproses / menunggu jadwal (reset jadwal)',

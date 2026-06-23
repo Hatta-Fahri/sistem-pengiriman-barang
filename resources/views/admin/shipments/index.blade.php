@@ -112,7 +112,8 @@
                                             'Terjadwal' => 'bg-purple-100 text-purple-700 border-purple-200',
                                             'Penundaan Pengiriman', 'Gagal Dikirim' => 'bg-red-100 text-red-700 border-red-200',
                                             'Diterima', 'Selesai' => 'bg-green-100 text-green-700 border-green-200',
-                                            'Dalam Perjalanan', 'Tiba di KotaTujuan', 'Dalam Pengantaran' => 'bg-blue-100 text-blue-700 border-blue-200',
+                                            'Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran' => 'bg-blue-100 text-blue-700 border-blue-200',
+                                            'Dibatalkan' => 'bg-gray-100 text-gray-500 border-gray-200',
                                             default => 'bg-gray-100 text-gray-700 border-gray-200'
                                         };
 
@@ -294,6 +295,7 @@
                                                         'Penundaan Pengiriman', 'Gagal Dikirim' => 'text-red-600',
                                                         'Diterima', 'Selesai' => 'text-green-600',
                                                         'Dalam Perjalanan', 'Tiba di Tujuan', 'Dalam Pengantaran' => 'text-blue-600',
+                                                        'Dibatalkan' => 'text-gray-500',
                                                         default => 'text-gray-600'
                                                     };
                                                 @endphp

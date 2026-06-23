@@ -3,7 +3,7 @@
 @section('header-title', 'Buat Jadwal & Alokasi Muatan')
 
 @section('content')
-    <div class="w-full space-y-6">
+    <div class="w-full space-y-6" x-data="{ cancelModalId: null }">
 
         <div class="flex items-center gap-2 text-sm text-gray-500">
             <a href="{{ route('manifests.index') }}" class="hover:text-blue-600 font-medium">Manifest</a>
@@ -44,10 +44,15 @@
                                         <th class="px-6 py-4">No. Resi</th>
                                         <th class="px-6 py-4">Penerima & Tujuan</th>
                                         <th class="px-6 py-4 text-right">Berat</th>
+                                        <th class="px-6 py-4 w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 text-gray-700">
                                     @forelse($availableShipments as $shipment)
+                                        @php
+                                            $statusVal = $shipment->current_status->value ?? $shipment->current_status;
+                                            $isPenundaan = $statusVal === 'Penundaan Pengiriman';
+                                        @endphp
                                         <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors" onclick="document.getElementById('ship_{{ $shipment->id }}').click()">
                                             <td class="px-6 py-4" onclick="event.stopPropagation()">
                                                 <input type="checkbox" name="shipment_ids[]" value="{{ $shipment->id }}"
@@ -60,10 +65,19 @@
                                                 <div class="text-xs text-gray-500 mt-0.5">{{ $shipment->destination_city }}</div>
                                             </td>
                                             <td class="px-6 py-4 text-right font-bold">{{ number_format($shipment->weight, 1) }} Kg</td>
+                                            <td class="px-6 py-4" onclick="event.stopPropagation()">
+                                                @if ($isPenundaan)
+                                                    <button type="button" @click="cancelModalId = {{ $shipment->id }}"
+                                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                                        title="Keluarkan resi ini dari jadwal selamanya">
+                                                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                                    </button>
+                                                @endif
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="px-6 py-16 text-center text-gray-400">
+                                            <td colspan="5" class="px-6 py-16 text-center text-gray-400">
                                                 <i data-lucide="package-check" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
                                                 <p>Semua resi sudah dialokasikan ke jadwal.</p>
                                             </td>
@@ -149,6 +163,41 @@
 
             </div>
         </form>
+
+        @foreach ($availableShipments as $shipment)
+            @php $isPenundaan = ($shipment->current_status->value ?? $shipment->current_status) === 'Penundaan Pengiriman'; @endphp
+            @if ($isPenundaan)
+                <div x-show="cancelModalId === {{ $shipment->id }}" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+                    <div @click.away="cancelModalId = null"
+                         x-show="cancelModalId === {{ $shipment->id }}"
+                         x-transition
+                         class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-gray-100 p-6 text-center">
+
+                        <div class="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+                        </div>
+
+                        <h3 class="text-lg font-black text-gray-900 mb-2">Keluarkan Resi Selamanya?</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed mb-1">
+                            Resi <span class="font-bold text-gray-700">{{ $shipment->tracking_number }}</span> akan dikeluarkan dari daftar jadwal selamanya dan tidak bisa dijadwalkan ulang lagi.
+                        </p>
+                        <p class="text-xs text-gray-400 mb-6">Gunakan ini jika customer sudah memutuskan untuk membuat resi baru.</p>
+
+                        <div class="flex gap-3">
+                            <button type="button" @click="cancelModalId = null" class="flex-1 py-2.5 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm">
+                                Batal
+                            </button>
+                            <form action="{{ route('shipments.cancelPermanent', $shipment->id) }}" method="POST" class="flex-1">
+                                @csrf
+                                <button type="submit" class="w-full py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors text-sm">
+                                    Ya, Keluarkan
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
     </div>
 
     <script>

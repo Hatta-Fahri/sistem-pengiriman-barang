@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class)->except(['create', 'edit', 'show']); // Manajemen Pengguna
 
         // OPERASIONAL
+        Route::post('shipments/{shipment}/batalkan-permanen', [ShipmentController::class, 'cancelPermanent'])->name('shipments.cancelPermanent');
         Route::resource('shipments', ShipmentController::class);
 
         Route::post('manifests/{manifest}/berangkatkan', [ManifestController::class, 'berangkatkan'])->name('manifests.berangkatkan');
