@@ -118,7 +118,7 @@
                                     <option value="" data-capacity="0">-- Pilih Armada --</option>
                                     @foreach ($availableVehicles as $vehicle)
                                         <option value="{{ $vehicle->id }}" data-capacity="{{ $vehicle->capacity }}">
-                                            {{ $vehicle->license_plate }} (Max: {{ number_format($vehicle->capacity, 0) }}Kg)
+                                            {{ $vehicle->type }} - {{ $vehicle->license_plate }} (Max: {{ number_format($vehicle->capacity, 0) }}Kg)
                                         </option>
                                     @endforeach
                                 </select>

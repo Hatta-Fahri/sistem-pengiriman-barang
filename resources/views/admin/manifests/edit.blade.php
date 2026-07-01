@@ -93,7 +93,7 @@
                                     @foreach ($availableVehicles as $vehicle)
                                         <option value="{{ $vehicle->id }}" data-capacity="{{ $vehicle->capacity }}"
                                             {{ $manifest->vehicle_id == $vehicle->id ? 'selected' : '' }}>
-                                            {{ $vehicle->license_plate }} (Max:
+                                           {{ $vehicle->type }} {{ $vehicle->license_plate }} (Max:
                                             {{ number_format($vehicle->capacity, 0) }}Kg)</option>
                                     @endforeach
                                 </select>
