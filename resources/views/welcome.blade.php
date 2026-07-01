@@ -80,7 +80,7 @@
             </h1>
 
             <p class="text-gray-600 text-base md:text-lg mb-10 font-medium max-w-xl mx-auto drop-shadow-sm">
-                Masukkan nomor resi KEN Logistics Anda untuk mengetahui posisi dan status paket secara real-time dan akurat.
+                Masukkan nomor resi KEN Logistics Anda untuk mengetahui status paket secara real-time dan akurat.
             </p>
 
             <form action="{{ route('tracking.index') }}" method="GET" class="max-w-xl mx-auto relative group">
